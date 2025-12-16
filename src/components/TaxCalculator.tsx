@@ -22,8 +22,10 @@ interface ConversionInputs {
 }
 
 interface SaleInputs {
-  acquisitionCost: number;
-  salePrice: number;
+  strikePriceUsd: number;
+  sharesCount: number;
+  currentPriceRub: number;
+  usdRubRate: number;
   saleType: SaleType;
 }
 
@@ -81,8 +83,10 @@ export default function TaxCalculator() {
   });
   
   const [saleInputs, setSaleInputs] = useState<SaleInputs>({
-    acquisitionCost: 0,
-    salePrice: 0,
+    strikePriceUsd: 0.01,
+    sharesCount: 0,
+    currentPriceRub: 0,
+    usdRubRate: 100,
     saleType: "foreign_or_individual",
   });
 
@@ -255,8 +259,24 @@ export default function TaxCalculator() {
     );
   };
 
+  // Sale calculations
+  const calculateSale = () => {
+    const { strikePriceUsd, sharesCount, currentPriceRub, usdRubRate } = saleInputs;
+    
+    // Стоимость приобретения = Strike price × USD/RUB × Количество
+    const acquisitionCost = strikePriceUsd * usdRubRate * sharesCount;
+    
+    // Стоимость продажи = Текущая цена × Количество
+    const salePrice = currentPriceRub * sharesCount;
+    
+    // Доход = Стоимость продажи - Стоимость приобретения
+    const income = salePrice - acquisitionCost;
+    
+    return { acquisitionCost, salePrice, income };
+  };
+
   const renderSaleResult = () => {
-    const income = saleInputs.salePrice - saleInputs.acquisitionCost;
+    const { acquisitionCost, salePrice, income } = calculateSale();
     
     if (residency === "russia") {
       const { tax, rate, breakdown } = calculateNdfl(income);
@@ -281,13 +301,15 @@ export default function TaxCalculator() {
           break;
       }
       
+      const netProfit = income - tax;
+      
       return (
         <div className="space-y-4">
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
             <p className="text-sm text-muted-foreground">Расчёт дохода:</p>
             <div className="text-sm space-y-1">
-              <p>Стоимость продажи: {formatCurrency(saleInputs.salePrice)}</p>
-              <p>Стоимость приобретения: {formatCurrency(saleInputs.acquisitionCost)}</p>
+              <p><span className="font-medium">Стоимость приобретения:</span> {formatCurrency(saleInputs.strikePriceUsd, "USD")} × {saleInputs.usdRubRate} × {saleInputs.sharesCount} = <span className="font-semibold">{formatCurrency(acquisitionCost)}</span></p>
+              <p><span className="font-medium">Стоимость продажи:</span> {formatCurrency(saleInputs.currentPriceRub)} × {saleInputs.sharesCount} = <span className="font-semibold">{formatCurrency(salePrice)}</span></p>
             </div>
           </div>
           
@@ -303,6 +325,17 @@ export default function TaxCalculator() {
               <p className="text-xs opacity-75 mt-2">{breakdown}</p>
             </div>
           )}
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-muted/30 border">
+              <p className="text-sm text-muted-foreground mb-1">НДФЛ к уплате</p>
+              <p className="text-lg font-semibold">{formatCurrency(tax)}</p>
+            </div>
+            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
+              <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netProfit))}</p>
+            </div>
+          </div>
           
           <Alert className={selfPay ? "border-warning/30 bg-warning/5" : "border-success/30 bg-success/5"}>
             {selfPay ? <AlertTriangle className="h-4 w-4 text-warning" /> : <CheckCircle2 className="h-4 w-4 text-success" />}
@@ -321,24 +354,38 @@ export default function TaxCalculator() {
     
     if (residency === "kazakhstan") {
       return (
-        <Alert className="border-success/30 bg-success/5">
-          <CheckCircle2 className="h-5 w-5 text-success" />
-          <AlertTitle className="text-success font-semibold">ИПН не взимается до 2066 года</AlertTitle>
-          <AlertDescription className="text-muted-foreground mt-2">
-            Для резидентов Казахстана действует льгота МФЦА. ИПН не взимается независимо от срока владения акциями.
-          </AlertDescription>
-        </Alert>
+        <div className="space-y-4">
+          <Alert className="border-success/30 bg-success/5">
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <AlertTitle className="text-success font-semibold">ИПН не взимается до 2066 года</AlertTitle>
+            <AlertDescription className="text-muted-foreground mt-2">
+              Для резидентов Казахстана действует льгота МФЦА. ИПН не взимается независимо от срока владения акциями.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+            <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
+            <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, income))}</p>
+          </div>
+        </div>
       );
     }
     
     return (
-      <Alert className="border-warning/30 bg-warning/5">
-        <AlertTriangle className="h-5 w-5 text-warning" />
-        <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
-        <AlertDescription className="text-muted-foreground mt-2">
-          В Казахстане ИПН не взимается до 2066 года благодаря льготе МФЦА. Вам необходимо проанализировать законодательство страны вашего резидентства, чтобы понять, облагается ли местным налогом доход от продажи акций.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert className="border-warning/30 bg-warning/5">
+          <AlertTriangle className="h-5 w-5 text-warning" />
+          <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+          <AlertDescription className="text-muted-foreground mt-2">
+            В Казахстане ИПН не взимается до 2066 года благодаря льготе МФЦА. Вам необходимо проанализировать законодательство страны вашего резидентства, чтобы понять, облагается ли местным налогом доход от продажи акций.
+          </AlertDescription>
+        </Alert>
+        
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          <p className="text-sm text-muted-foreground mb-1">Потенциальная прибыль (без учёта местного налога)</p>
+          <p className="text-lg font-semibold">{formatCurrency(Math.max(0, income))}</p>
+        </div>
+      </div>
     );
   };
 
@@ -517,30 +564,83 @@ export default function TaxCalculator() {
                     </p>
                   </div>
                   
-                  {residency === "russia" && (
-                    <div className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="acquisitionCost">Стоимость приобретения акций</Label>
+                        <Label htmlFor="saleStrikePriceUsd">Цена исполнения ($)</Label>
                         <Input
-                          id="acquisitionCost"
+                          id="saleStrikePriceUsd"
                           type="number"
-                          placeholder="0"
-                          value={saleInputs.acquisitionCost || ""}
-                          onChange={(e) => setSaleInputs(prev => ({ ...prev, acquisitionCost: Number(e.target.value) }))}
+                          step="0.01"
+                          placeholder="0.01"
+                          value={saleInputs.strikePriceUsd || ""}
+                          onChange={(e) => setSaleInputs(prev => ({ ...prev, strikePriceUsd: Number(e.target.value) }))}
                         />
+                        <p className="text-xs text-muted-foreground">Strike price при покупке</p>
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="salePrice">Стоимость продажи акций</Label>
+                        <Label htmlFor="sharesCount">Количество акций</Label>
                         <Input
-                          id="salePrice"
+                          id="sharesCount"
                           type="number"
                           placeholder="0"
-                          value={saleInputs.salePrice || ""}
-                          onChange={(e) => setSaleInputs(prev => ({ ...prev, salePrice: Number(e.target.value) }))}
+                          value={saleInputs.sharesCount || ""}
+                          onChange={(e) => setSaleInputs(prev => ({ ...prev, sharesCount: Number(e.target.value) }))}
                         />
                       </div>
-                      
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPriceRub">Текущая стоимость акции (₽)</Label>
+                      <Input
+                        id="currentPriceRub"
+                        type="number"
+                        placeholder="0"
+                        value={saleInputs.currentPriceRub || ""}
+                        onChange={(e) => setSaleInputs(prev => ({ ...prev, currentPriceRub: Number(e.target.value) }))}
+                      />
+                      <p className="text-xs text-muted-foreground">Цена продажи за одну акцию в рублях</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="saleUsdRubRate">Курс USD/RUB</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="saleUsdRubRate"
+                          type="number"
+                          step="0.01"
+                          placeholder="100"
+                          value={saleInputs.usdRubRate || ""}
+                          onChange={(e) => setSaleInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
+                        />
+                        <button
+                          onClick={async () => {
+                            setIsLoadingRate(true);
+                            try {
+                              const response = await fetch("https://www.cbr-xml-daily.ru/daily_json.js");
+                              const data = await response.json();
+                              const rate = data.Valute?.USD?.Value;
+                              if (rate) {
+                                setSaleInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
+                              }
+                            } catch (error) {
+                              console.error("Failed to fetch exchange rate:", error);
+                            } finally {
+                              setIsLoadingRate(false);
+                            }
+                          }}
+                          disabled={isLoadingRate}
+                          className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
+                          ЦБ РФ
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Курс на момент покупки акций</p>
+                    </div>
+                    
+                    {residency === "russia" && (
                       <div className="space-y-2">
                         <Label htmlFor="saleType">Кому продаёте акции?</Label>
                         <Select value={saleInputs.saleType} onValueChange={(v) => setSaleInputs(prev => ({ ...prev, saleType: v as SaleType }))}>
@@ -555,8 +655,8 @@ export default function TaxCalculator() {
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                   
                   <div className="pt-4 border-t">
                     <h4 className="font-medium mb-3">Результат расчёта</h4>
