@@ -146,27 +146,17 @@ export default function TaxCalculator() {
       
       return (
         <div className="space-y-4">
-          <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-            <p className="text-sm text-muted-foreground">Формула расчёта: N = M − (K + L)</p>
-            <div className="text-sm space-y-1 mt-3">
-              <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
-              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEES[conversionInputs.registrationType], "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
-              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueRub)} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
-            </div>
+          {/* НДФЛ - первый и самый яркий блок */}
+          <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
+            <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
+            <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
+            <p className="text-xs opacity-75 mt-2">{breakdown}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
             <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход (N)</p>
             <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, N))}</p>
           </div>
-          
-          {N > 0 && (
-            <div className="p-4 rounded-lg gradient-primary text-primary-foreground">
-              <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
-              <p className="text-3xl font-bold">{formatCurrency(tax)}</p>
-              <p className="text-xs opacity-75 mt-2">{breakdown}</p>
-            </div>
-          )}
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
@@ -178,6 +168,15 @@ export default function TaxCalculator() {
               <p className="text-sm text-muted-foreground mb-1">Чистая стоимость акций</p>
               <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netShareValue))}</p>
               <p className="text-xs text-muted-foreground">M − расходы</p>
+            </div>
+          </div>
+          
+          <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+            <p className="text-sm text-muted-foreground">Формула расчёта: N = M − (K + L)</p>
+            <div className="text-sm space-y-1 mt-3">
+              <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
+              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEES[conversionInputs.registrationType], "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueRub)} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
             </div>
           </div>
           
@@ -295,12 +294,11 @@ export default function TaxCalculator() {
       
       return (
         <div className="space-y-4">
-          <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-            <p className="text-sm text-muted-foreground">Расчёт дохода: Стоимость продажи − Стоимость приобретения</p>
-            <div className="text-sm space-y-1">
-              <p><span className="font-medium">Стоимость приобретения:</span> <span className="font-semibold">{formatCurrency(acquisitionCost)}</span></p>
-              <p><span className="font-medium">Стоимость продажи:</span> <span className="font-semibold">{formatCurrency(salePrice)}</span></p>
-            </div>
+          {/* НДФЛ - первый и самый яркий блок */}
+          <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
+            <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
+            <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
+            <p className="text-xs opacity-75 mt-2">{breakdown}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
@@ -308,18 +306,10 @@ export default function TaxCalculator() {
             <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, income))}</p>
           </div>
           
-          {income > 0 && (
-            <div className="p-4 rounded-lg gradient-primary text-primary-foreground">
-              <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
-              <p className="text-3xl font-bold">{formatCurrency(tax)}</p>
-              <p className="text-xs opacity-75 mt-2">{breakdown}</p>
-            </div>
-          )}
-          
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <p className="text-sm text-muted-foreground mb-1">НДФЛ к уплате</p>
-              <p className="text-lg font-semibold">{formatCurrency(tax)}</p>
+              <p className="text-sm text-muted-foreground mb-1">Стоимость приобретения</p>
+              <p className="text-lg font-semibold">{formatCurrency(acquisitionCost)}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
               <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
