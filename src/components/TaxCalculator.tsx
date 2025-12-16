@@ -1,21 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 
 type Residency = "russia" | "kazakhstan" | "other";
 type Operation = "options" | "conversion" | "sale";
 type SaleType = "dodo_brands" | "dp_global" | "russian_company" | "foreign_or_individual";
+type RegistrationType = "primary" | "secondary";
 
 interface ConversionInputs {
-  marketValue: number;
-  actualPrice: number;
-  registrationFee: number;
+  strikePriceUsd: number;
+  fairValueRub: number;
+  optionsCount: number;
+  usdRubRate: number;
+  registrationType: RegistrationType;
 }
 
 interface SaleInputs {
@@ -24,12 +27,12 @@ interface SaleInputs {
   saleType: SaleType;
 }
 
-const formatCurrency = (value: number): string => {
+const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
   return new Intl.NumberFormat("ru-RU", {
     style: "currency",
-    currency: "RUB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    currency: currency,
+    minimumFractionDigits: currency === "USD" ? 2 : 0,
+    maximumFractionDigits: currency === "USD" ? 2 : 0,
   }).format(value);
 };
 
@@ -59,14 +62,22 @@ const calculateNdfl = (income: number): { tax: number; rate: string; breakdown: 
   }
 };
 
+const REGISTRATION_FEES = {
+  primary: 300, // USD
+  secondary: 150, // USD
+};
+
 export default function TaxCalculator() {
   const [residency, setResidency] = useState<Residency>("russia");
   const [operation, setOperation] = useState<Operation>("options");
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
   
   const [conversionInputs, setConversionInputs] = useState<ConversionInputs>({
-    marketValue: 0,
-    actualPrice: 0,
-    registrationFee: 0,
+    strikePriceUsd: 0.01,
+    fairValueRub: 0,
+    optionsCount: 0,
+    usdRubRate: 100,
+    registrationType: "primary",
   });
   
   const [saleInputs, setSaleInputs] = useState<SaleInputs>({
@@ -74,6 +85,46 @@ export default function TaxCalculator() {
     salePrice: 0,
     saleType: "foreign_or_individual",
   });
+
+  // Fetch USD/RUB exchange rate
+  const fetchExchangeRate = async () => {
+    setIsLoadingRate(true);
+    try {
+      const response = await fetch("https://www.cbr-xml-daily.ru/daily_json.js");
+      const data = await response.json();
+      const rate = data.Valute?.USD?.Value;
+      if (rate) {
+        setConversionInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch exchange rate:", error);
+    } finally {
+      setIsLoadingRate(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchExchangeRate();
+  }, []);
+
+  // Conversion calculations
+  const calculateConversion = () => {
+    const { strikePriceUsd, fairValueRub, optionsCount, usdRubRate, registrationType } = conversionInputs;
+    
+    // K = Strike price × USD/RUB × Quantity
+    const K = strikePriceUsd * usdRubRate * optionsCount;
+    
+    // L = Registration fee in USD × USD/RUB
+    const L = REGISTRATION_FEES[registrationType] * usdRubRate;
+    
+    // M = Fair Value × Quantity × 0.8 (20% discount)
+    const M = fairValueRub * optionsCount * 0.8;
+    
+    // N = M - (K + L)
+    const N = M - (K + L);
+    
+    return { K, L, M, N };
+  };
 
   const renderOptionsResult = () => (
     <Alert className="border-success/30 bg-success/5">
@@ -86,36 +137,49 @@ export default function TaxCalculator() {
   );
 
   const renderConversionResult = () => {
-    const adjustedMarketValue = conversionInputs.marketValue * 0.8;
-    const taxableIncome = adjustedMarketValue - conversionInputs.actualPrice - conversionInputs.registrationFee;
+    const { K, L, M, N } = calculateConversion();
     
     if (residency === "russia") {
-      const { tax, rate, breakdown } = calculateNdfl(taxableIncome);
+      const { tax, rate, breakdown } = calculateNdfl(N);
+      const totalExpenses = tax + L;
+      const netShareValue = M - totalExpenses;
       
       return (
         <div className="space-y-4">
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-            <p className="text-sm text-muted-foreground">Формула расчёта:</p>
-            <p className="font-mono text-sm">N = M − (K + L)</p>
+            <p className="text-sm text-muted-foreground">Формула расчёта: N = M − (K + L)</p>
             <div className="text-sm space-y-1 mt-3">
-              <p>M (рыночная стоимость − 20%): {formatCurrency(adjustedMarketValue)}</p>
-              <p>K (фактическая стоимость): {formatCurrency(conversionInputs.actualPrice)}</p>
-              <p>L (расходы на регистрацию): {formatCurrency(conversionInputs.registrationFee)}</p>
+              <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
+              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEES[conversionInputs.registrationType], "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueRub)} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
             </div>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
             <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход (N)</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, taxableIncome))}</p>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, N))}</p>
           </div>
           
-          {taxableIncome > 0 && (
+          {N > 0 && (
             <div className="p-4 rounded-lg gradient-primary text-primary-foreground">
               <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
               <p className="text-3xl font-bold">{formatCurrency(tax)}</p>
               <p className="text-xs opacity-75 mt-2">{breakdown}</p>
             </div>
           )}
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-muted/30 border">
+              <p className="text-sm text-muted-foreground mb-1">Общие расходы</p>
+              <p className="text-lg font-semibold">{formatCurrency(totalExpenses)}</p>
+              <p className="text-xs text-muted-foreground">НДФЛ + регистрация</p>
+            </div>
+            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              <p className="text-sm text-muted-foreground mb-1">Чистая стоимость акций</p>
+              <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netShareValue))}</p>
+              <p className="text-xs text-muted-foreground">M − расходы</p>
+            </div>
+          </div>
           
           <Alert>
             <Info className="h-4 w-4" />
@@ -128,25 +192,66 @@ export default function TaxCalculator() {
     }
     
     if (residency === "kazakhstan") {
+      const netShareValue = M - L;
+      
       return (
-        <Alert className="border-success/30 bg-success/5">
-          <CheckCircle2 className="h-5 w-5 text-success" />
-          <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
-          <AlertDescription className="text-muted-foreground mt-2">
-            Для резидентов Казахстана такой доход не облагается индивидуальным подоходным налогом.
-          </AlertDescription>
-        </Alert>
+        <div className="space-y-4">
+          <Alert className="border-success/30 bg-success/5">
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
+            <AlertDescription className="text-muted-foreground mt-2">
+              Для резидентов Казахстана такой доход не облагается индивидуальным подоходным налогом.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+            <div className="text-sm space-y-1">
+              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEES[conversionInputs.registrationType], "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(M)}</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-muted/30 border">
+              <p className="text-sm text-muted-foreground mb-1">Расходы</p>
+              <p className="text-lg font-semibold">{formatCurrency(L)}</p>
+              <p className="text-xs text-muted-foreground">Только регистрация</p>
+            </div>
+            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              <p className="text-sm text-muted-foreground mb-1">Чистая стоимость акций</p>
+              <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netShareValue))}</p>
+            </div>
+          </div>
+        </div>
       );
     }
     
+    // Other country
+    const netShareValue = M - L;
+    
     return (
-      <Alert className="border-warning/30 bg-warning/5">
-        <AlertTriangle className="h-5 w-5 text-warning" />
-        <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
-        <AlertDescription className="text-muted-foreground mt-2">
-          В Казахстане ИПН не взимается. Вам необходимо проанализировать законодательство страны вашего резидентства, чтобы понять, облагается ли местным налогом доход в виде экономии при покупке акций по номинальной цене вместо рыночной.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert className="border-warning/30 bg-warning/5">
+          <AlertTriangle className="h-5 w-5 text-warning" />
+          <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+          <AlertDescription className="text-muted-foreground mt-2">
+            В Казахстане ИПН не взимается. Вам необходимо проанализировать законодательство страны вашего резидентства, чтобы понять, облагается ли местным налогом доход в виде экономии при покупке акций по номинальной цене вместо рыночной.
+          </AlertDescription>
+        </Alert>
+        
+        <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+          <div className="text-sm space-y-1">
+            <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(L)}</p>
+            <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(M)}</p>
+            <p><span className="font-medium">N</span> (Потенциальная налоговая база): {formatCurrency(Math.max(0, N))}</p>
+          </div>
+        </div>
+        
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          <p className="text-sm text-muted-foreground mb-1">Стоимость акций (без учёта местного налога)</p>
+          <p className="text-lg font-semibold">{formatCurrency(Math.max(0, netShareValue))}</p>
+        </div>
+      </div>
     );
   };
 
@@ -311,45 +416,90 @@ export default function TaxCalculator() {
                     </p>
                   </div>
                   
-                  {residency === "russia" && (
-                    <div className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="marketValue">Рыночная стоимость акций (до вычета 20%)</Label>
+                        <Label htmlFor="strikePriceUsd">Цена исполнения ($)</Label>
                         <Input
-                          id="marketValue"
+                          id="strikePriceUsd"
                           type="number"
-                          placeholder="0"
-                          value={conversionInputs.marketValue || ""}
-                          onChange={(e) => setConversionInputs(prev => ({ ...prev, marketValue: Number(e.target.value) }))}
+                          step="0.01"
+                          placeholder="0.01"
+                          value={conversionInputs.strikePriceUsd || ""}
+                          onChange={(e) => setConversionInputs(prev => ({ ...prev, strikePriceUsd: Number(e.target.value) }))}
                         />
-                        <p className="text-xs text-muted-foreground">Согласно отчёту оценщика (20% будет вычтено автоматически)</p>
+                        <p className="text-xs text-muted-foreground">Strike price опциона</p>
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="actualPrice">Фактическая стоимость акций (K)</Label>
+                        <Label htmlFor="optionsCount">Количество опционов</Label>
                         <Input
-                          id="actualPrice"
+                          id="optionsCount"
                           type="number"
                           placeholder="0"
-                          value={conversionInputs.actualPrice || ""}
-                          onChange={(e) => setConversionInputs(prev => ({ ...prev, actualPrice: Number(e.target.value) }))}
+                          value={conversionInputs.optionsCount || ""}
+                          onChange={(e) => setConversionInputs(prev => ({ ...prev, optionsCount: Number(e.target.value) }))}
                         />
-                        <p className="text-xs text-muted-foreground">Сумма, которую вы платите за акции</p>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="registrationFee">Расходы на регистрацию (L)</Label>
-                        <Input
-                          id="registrationFee"
-                          type="number"
-                          placeholder="0"
-                          value={conversionInputs.registrationFee || ""}
-                          onChange={(e) => setConversionInputs(prev => ({ ...prev, registrationFee: Number(e.target.value) }))}
-                        />
-                        <p className="text-xs text-muted-foreground">Registration fee и другие расходы</p>
                       </div>
                     </div>
-                  )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="fairValueRub">Текущая стоимость акции (₽)</Label>
+                      <Input
+                        id="fairValueRub"
+                        type="number"
+                        placeholder="0"
+                        value={conversionInputs.fairValueRub || ""}
+                        onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
+                      />
+                      <p className="text-xs text-muted-foreground">Fair Value за одну акцию в рублях</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="usdRubRate">Курс USD/RUB</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="usdRubRate"
+                          type="number"
+                          step="0.01"
+                          placeholder="100"
+                          value={conversionInputs.usdRubRate || ""}
+                          onChange={(e) => setConversionInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
+                        />
+                        <button
+                          onClick={fetchExchangeRate}
+                          disabled={isLoadingRate}
+                          className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
+                          ЦБ РФ
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Курс загружается автоматически с ЦБ РФ</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Тип оформления</Label>
+                      <RadioGroup
+                        value={conversionInputs.registrationType}
+                        onValueChange={(v) => setConversionInputs(prev => ({ ...prev, registrationType: v as RegistrationType }))}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="primary" id="primary" />
+                          <Label htmlFor="primary" className="font-normal cursor-pointer">
+                            Первичное ($300)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="secondary" id="secondary" />
+                          <Label htmlFor="secondary" className="font-normal cursor-pointer">
+                            Повторное ($150)
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </div>
                   
                   <div className="pt-4 border-t">
                     <h4 className="font-medium mb-3">Результат расчёта</h4>
