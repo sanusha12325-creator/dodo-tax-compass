@@ -22,10 +22,8 @@ interface ConversionInputs {
 }
 
 interface SaleInputs {
-  strikePriceUsd: number;
-  sharesCount: number;
-  currentPriceRub: number;
-  usdRubRate: number;
+  acquisitionCost: number;
+  salePrice: number;
   saleType: SaleType;
 }
 
@@ -83,10 +81,8 @@ export default function TaxCalculator() {
   });
   
   const [saleInputs, setSaleInputs] = useState<SaleInputs>({
-    strikePriceUsd: 0.01,
-    sharesCount: 0,
-    currentPriceRub: 0,
-    usdRubRate: 100,
+    acquisitionCost: 0,
+    salePrice: 0,
     saleType: "foreign_or_individual",
   });
 
@@ -261,13 +257,7 @@ export default function TaxCalculator() {
 
   // Sale calculations
   const calculateSale = () => {
-    const { strikePriceUsd, sharesCount, currentPriceRub, usdRubRate } = saleInputs;
-    
-    // Стоимость приобретения = Strike price × USD/RUB × Количество
-    const acquisitionCost = strikePriceUsd * usdRubRate * sharesCount;
-    
-    // Стоимость продажи = Текущая цена × Количество
-    const salePrice = currentPriceRub * sharesCount;
+    const { acquisitionCost, salePrice } = saleInputs;
     
     // Доход = Стоимость продажи - Стоимость приобретения
     const income = salePrice - acquisitionCost;
@@ -306,10 +296,10 @@ export default function TaxCalculator() {
       return (
         <div className="space-y-4">
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-            <p className="text-sm text-muted-foreground">Расчёт дохода:</p>
+            <p className="text-sm text-muted-foreground">Расчёт дохода: Стоимость продажи − Стоимость приобретения</p>
             <div className="text-sm space-y-1">
-              <p><span className="font-medium">Стоимость приобретения:</span> {formatCurrency(saleInputs.strikePriceUsd, "USD")} × {saleInputs.usdRubRate} × {saleInputs.sharesCount} = <span className="font-semibold">{formatCurrency(acquisitionCost)}</span></p>
-              <p><span className="font-medium">Стоимость продажи:</span> {formatCurrency(saleInputs.currentPriceRub)} × {saleInputs.sharesCount} = <span className="font-semibold">{formatCurrency(salePrice)}</span></p>
+              <p><span className="font-medium">Стоимость приобретения:</span> <span className="font-semibold">{formatCurrency(acquisitionCost)}</span></p>
+              <p><span className="font-medium">Стоимость продажи:</span> <span className="font-semibold">{formatCurrency(salePrice)}</span></p>
             </div>
           </div>
           
@@ -565,79 +555,28 @@ export default function TaxCalculator() {
                   </div>
                   
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="saleStrikePriceUsd">Цена исполнения ($)</Label>
-                        <Input
-                          id="saleStrikePriceUsd"
-                          type="number"
-                          step="0.01"
-                          placeholder="0.01"
-                          value={saleInputs.strikePriceUsd || ""}
-                          onChange={(e) => setSaleInputs(prev => ({ ...prev, strikePriceUsd: Number(e.target.value) }))}
-                        />
-                        <p className="text-xs text-muted-foreground">Strike price при покупке</p>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="sharesCount">Количество акций</Label>
-                        <Input
-                          id="sharesCount"
-                          type="number"
-                          placeholder="0"
-                          value={saleInputs.sharesCount || ""}
-                          onChange={(e) => setSaleInputs(prev => ({ ...prev, sharesCount: Number(e.target.value) }))}
-                        />
-                      </div>
-                    </div>
-                    
                     <div className="space-y-2">
-                      <Label htmlFor="currentPriceRub">Текущая стоимость акции (₽)</Label>
+                      <Label htmlFor="acquisitionCost">Стоимость приобретения акций (₽)</Label>
                       <Input
-                        id="currentPriceRub"
+                        id="acquisitionCost"
                         type="number"
                         placeholder="0"
-                        value={saleInputs.currentPriceRub || ""}
-                        onChange={(e) => setSaleInputs(prev => ({ ...prev, currentPriceRub: Number(e.target.value) }))}
+                        value={saleInputs.acquisitionCost || ""}
+                        onChange={(e) => setSaleInputs(prev => ({ ...prev, acquisitionCost: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Цена продажи за одну акцию в рублях</p>
+                      <p className="text-xs text-muted-foreground">Общая сумма, за которую вы купили акции</p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="saleUsdRubRate">Курс USD/RUB</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="saleUsdRubRate"
-                          type="number"
-                          step="0.01"
-                          placeholder="100"
-                          value={saleInputs.usdRubRate || ""}
-                          onChange={(e) => setSaleInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
-                        />
-                        <button
-                          onClick={async () => {
-                            setIsLoadingRate(true);
-                            try {
-                              const response = await fetch("https://www.cbr-xml-daily.ru/daily_json.js");
-                              const data = await response.json();
-                              const rate = data.Valute?.USD?.Value;
-                              if (rate) {
-                                setSaleInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
-                              }
-                            } catch (error) {
-                              console.error("Failed to fetch exchange rate:", error);
-                            } finally {
-                              setIsLoadingRate(false);
-                            }
-                          }}
-                          disabled={isLoadingRate}
-                          className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
-                        >
-                          <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
-                          ЦБ РФ
-                        </button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Курс на момент покупки акций</p>
+                      <Label htmlFor="salePrice">Стоимость продажи акций (₽)</Label>
+                      <Input
+                        id="salePrice"
+                        type="number"
+                        placeholder="0"
+                        value={saleInputs.salePrice || ""}
+                        onChange={(e) => setSaleInputs(prev => ({ ...prev, salePrice: Number(e.target.value) }))}
+                      />
+                      <p className="text-xs text-muted-foreground">Общая сумма, за которую вы продаёте акции</p>
                     </div>
                     
                     {residency === "russia" && (
