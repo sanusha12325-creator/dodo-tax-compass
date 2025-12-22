@@ -332,9 +332,12 @@ export default function TaxCalculator() {
             <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход</p>
             <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, adjustedIncome))}</p>
             {saleInputs.hasConvertedOptions && saleInputs.paidConversionTax > 0 && (
-              <p className="text-sm text-muted-foreground mt-2">
-                {formatCurrency(income)} − {formatCurrency(saleInputs.paidConversionTax)} = {formatCurrency(Math.max(0, adjustedIncome))}
-              </p>
+              <div className="mt-3 pt-3 border-t border-primary/10">
+                <p className="text-xs text-muted-foreground mb-1">Расчёт с учётом оплаченного налога:</p>
+                <p className="text-sm text-foreground">
+                  <span className="text-muted-foreground">Доход от продажи</span> {formatCurrency(income)} − <span className="text-muted-foreground">Оплаченный НДФЛ</span> {formatCurrency(saleInputs.paidConversionTax)} = {formatCurrency(Math.max(0, adjustedIncome))}
+                </p>
+              </div>
             )}
           </div>
           
