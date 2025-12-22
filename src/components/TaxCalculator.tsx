@@ -21,10 +21,14 @@ interface ConversionInputs {
   registrationType: RegistrationType;
 }
 
+type BuyerType = "new_shareholder" | "current_shareholder";
+
 interface SaleInputs {
   acquisitionCost: number;
   salePrice: number;
   saleType: SaleType;
+  buyerType: BuyerType;
+  usdRubRate: number;
 }
 
 const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
@@ -84,6 +88,8 @@ export default function TaxCalculator() {
     acquisitionCost: 0,
     salePrice: 0,
     saleType: "foreign_or_individual",
+    buyerType: "new_shareholder",
+    usdRubRate: 100,
   });
 
   // Fetch USD/RUB exchange rate
@@ -94,7 +100,9 @@ export default function TaxCalculator() {
       const data = await response.json();
       const rate = data.Valute?.USD?.Value;
       if (rate) {
-        setConversionInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
+        const roundedRate = Math.round(rate * 100) / 100;
+        setConversionInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
+        setSaleInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
       }
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
@@ -254,18 +262,27 @@ export default function TaxCalculator() {
     );
   };
 
+  // Sale registration fees
+  const SALE_REGISTRATION_FEES = {
+    new_shareholder: 300, // USD
+    current_shareholder: 150, // USD
+  };
+
   // Sale calculations
   const calculateSale = () => {
-    const { acquisitionCost, salePrice } = saleInputs;
+    const { acquisitionCost, salePrice, buyerType, usdRubRate } = saleInputs;
+    
+    // Стоимость регистрации в рублях
+    const registrationFeeRub = SALE_REGISTRATION_FEES[buyerType] * usdRubRate;
     
     // Доход = Стоимость продажи - Стоимость приобретения
     const income = salePrice - acquisitionCost;
     
-    return { acquisitionCost, salePrice, income };
+    return { acquisitionCost, salePrice, income, registrationFeeRub, registrationFeeUsd: SALE_REGISTRATION_FEES[buyerType] };
   };
 
   const renderSaleResult = () => {
-    const { acquisitionCost, salePrice, income } = calculateSale();
+    const { acquisitionCost, salePrice, income, registrationFeeRub, registrationFeeUsd } = calculateSale();
     
     if (residency === "russia") {
       const { tax, rate, breakdown } = calculateNdfl(income);
@@ -290,7 +307,8 @@ export default function TaxCalculator() {
           break;
       }
       
-      const netProfit = income - tax;
+      const totalExpenses = (selfPay ? tax : 0) + registrationFeeRub;
+      const netProfit = salePrice - acquisitionCost - totalExpenses;
       
       return (
         <div className="space-y-4">
@@ -308,12 +326,14 @@ export default function TaxCalculator() {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <p className="text-sm text-muted-foreground mb-1">Стоимость приобретения</p>
-              <p className="text-lg font-semibold">{formatCurrency(acquisitionCost)}</p>
+              <p className="text-sm text-muted-foreground mb-1">Стоимость регистрации</p>
+              <p className="text-lg font-semibold">{formatCurrency(registrationFeeRub)}</p>
+              <p className="text-xs text-muted-foreground">{formatCurrency(registrationFeeUsd, "USD")} × {saleInputs.usdRubRate}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
               <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
               <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netProfit))}</p>
+              <p className="text-xs text-muted-foreground">После НДФЛ и регистрации</p>
             </div>
           </div>
           
@@ -333,6 +353,8 @@ export default function TaxCalculator() {
     }
     
     if (residency === "kazakhstan") {
+      const netProfit = income - registrationFeeRub;
+      
       return (
         <div className="space-y-4">
           <Alert className="border-success/30 bg-success/5">
@@ -343,13 +365,22 @@ export default function TaxCalculator() {
             </AlertDescription>
           </Alert>
           
-          <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-            <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
-            <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, income))}</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg bg-muted/30 border">
+              <p className="text-sm text-muted-foreground mb-1">Стоимость регистрации</p>
+              <p className="text-lg font-semibold">{formatCurrency(registrationFeeRub)}</p>
+              <p className="text-xs text-muted-foreground">{formatCurrency(registrationFeeUsd, "USD")} × {saleInputs.usdRubRate}</p>
+            </div>
+            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
+              <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netProfit))}</p>
+            </div>
           </div>
         </div>
       );
     }
+    
+    const netProfit = income - registrationFeeRub;
     
     return (
       <div className="space-y-4">
@@ -361,9 +392,16 @@ export default function TaxCalculator() {
           </AlertDescription>
         </Alert>
         
-        <div className="p-4 rounded-lg bg-muted/30 border">
-          <p className="text-sm text-muted-foreground mb-1">Потенциальная прибыль (без учёта местного налога)</p>
-          <p className="text-lg font-semibold">{formatCurrency(Math.max(0, income))}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            <p className="text-sm text-muted-foreground mb-1">Стоимость регистрации</p>
+            <p className="text-lg font-semibold">{formatCurrency(registrationFeeRub)}</p>
+            <p className="text-xs text-muted-foreground">{formatCurrency(registrationFeeUsd, "USD")} × {saleInputs.usdRubRate}</p>
+          </div>
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            <p className="text-sm text-muted-foreground mb-1">Прибыль (без учёта местного налога)</p>
+            <p className="text-lg font-semibold">{formatCurrency(Math.max(0, netProfit))}</p>
+          </div>
         </div>
       </div>
     );
@@ -569,6 +607,51 @@ export default function TaxCalculator() {
                       <p className="text-xs text-muted-foreground">Общая сумма, за которую вы продаёте акции</p>
                     </div>
                     
+                    <div className="space-y-2">
+                      <Label htmlFor="buyerType">Тип покупателя</Label>
+                      <Select value={saleInputs.buyerType} onValueChange={(v) => setSaleInputs(prev => ({ ...prev, buyerType: v as BuyerType }))}>
+                        <SelectTrigger id="buyerType">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="new_shareholder">Новый акционер ($300)</SelectItem>
+                          <SelectItem value="current_shareholder">Текущий акционер ($150)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Стоимость регистрации сделки</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="saleUsdRate">Курс USD/RUB</Label>
+                      <div className="relative">
+                        <Input
+                          id="saleUsdRate"
+                          type="number"
+                          step="0.01"
+                          value={saleInputs.usdRubRate}
+                          onChange={(e) => setSaleInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsLoadingRate(true);
+                            fetch("https://www.cbr-xml-daily.ru/daily_json.js")
+                              .then(r => r.json())
+                              .then(data => {
+                                const rate = data.Valute?.USD?.Value;
+                                if (rate) setSaleInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
+                              })
+                              .finally(() => setIsLoadingRate(false));
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-md transition-colors"
+                          title="Обновить курс ЦБ"
+                        >
+                          <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoadingRate ? "animate-spin" : ""}`} />
+                        </button>
+                      </div>
+                    </div>
+
                     {residency === "russia" && (
                       <div className="space-y-2">
                         <Label htmlFor="saleType">Кому продаёте акции?</Label>
