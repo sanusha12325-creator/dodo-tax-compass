@@ -330,7 +330,12 @@ export default function TaxCalculator() {
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
             <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, income))}</p>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, adjustedIncome))}</p>
+            {saleInputs.hasConvertedOptions && saleInputs.paidConversionTax > 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {formatCurrency(income)} − {formatCurrency(saleInputs.paidConversionTax)} = {formatCurrency(Math.max(0, adjustedIncome))}
+              </p>
+            )}
           </div>
           
           <div className="grid grid-cols-2 gap-4">
