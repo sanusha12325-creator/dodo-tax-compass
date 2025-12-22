@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 
 type Residency = "russia" | "kazakhstan" | "other";
@@ -29,6 +30,8 @@ interface SaleInputs {
   saleType: SaleType;
   buyerType: BuyerType;
   usdRubRate: number;
+  hasConvertedOptions: boolean;
+  paidConversionTax: number;
 }
 
 const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
@@ -90,6 +93,8 @@ export default function TaxCalculator() {
     saleType: "foreign_or_individual",
     buyerType: "new_shareholder",
     usdRubRate: 100,
+    hasConvertedOptions: false,
+    paidConversionTax: 0,
   });
 
   // Fetch USD/RUB exchange rate
@@ -285,7 +290,11 @@ export default function TaxCalculator() {
     const { acquisitionCost, salePrice, income, registrationFeeRub, registrationFeeUsd } = calculateSale();
     
     if (residency === "russia") {
-      const { tax, rate, breakdown } = calculateNdfl(income);
+      // Уменьшаем налоговую базу на оплаченный налог при конвертации
+      const adjustedIncome = saleInputs.hasConvertedOptions 
+        ? Math.max(0, income - saleInputs.paidConversionTax) 
+        : income;
+      const { tax, rate, breakdown } = calculateNdfl(adjustedIncome);
       
       let paymentMethod = "";
       let selfPay = true;
@@ -666,6 +675,39 @@ export default function TaxCalculator() {
                             <SelectItem value="foreign_or_individual">Иностранной компании или физ. лицу</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                    )}
+
+                    {residency === "russia" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="hasConvertedOptions"
+                            checked={saleInputs.hasConvertedOptions}
+                            onCheckedChange={(checked) => setSaleInputs(prev => ({ 
+                              ...prev, 
+                              hasConvertedOptions: checked === true,
+                              paidConversionTax: checked === true ? prev.paidConversionTax : 0
+                            }))}
+                          />
+                          <Label htmlFor="hasConvertedOptions" className="font-normal cursor-pointer">
+                            Я конвертировал опционы в акции
+                          </Label>
+                        </div>
+                        
+                        {saleInputs.hasConvertedOptions && (
+                          <div className="space-y-2 pl-6">
+                            <Label htmlFor="paidConversionTax">Оплаченный налог при конвертации (₽)</Label>
+                            <Input
+                              id="paidConversionTax"
+                              type="number"
+                              placeholder="0"
+                              value={saleInputs.paidConversionTax || ""}
+                              onChange={(e) => setSaleInputs(prev => ({ ...prev, paidConversionTax: Number(e.target.value) }))}
+                            />
+                            <p className="text-xs text-muted-foreground">Эта сумма уменьшит налоговую базу при расчёте НДФЛ</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
