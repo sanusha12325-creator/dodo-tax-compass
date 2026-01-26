@@ -12,14 +12,12 @@ import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTr
 type Residency = "russia" | "kazakhstan" | "other";
 type Operation = "options" | "conversion" | "sale";
 type SaleType = "dodo_brands" | "dp_global" | "russian_company" | "foreign_or_individual";
-type RegistrationType = "primary" | "secondary";
 
 interface ConversionInputs {
   strikePriceUsd: number;
   fairValueRub: number;
   optionsCount: number;
   usdRubRate: number;
-  registrationType: RegistrationType;
 }
 
 type BuyerType = "new_shareholder" | "current_shareholder";
@@ -69,10 +67,7 @@ const calculateNdfl = (income: number): { tax: number; rate: string; breakdown: 
   }
 };
 
-const REGISTRATION_FEES = {
-  primary: 300, // USD
-  secondary: 150, // USD
-};
+const REGISTRATION_FEE = 100; // USD - обязательный платёж
 
 export default function TaxCalculator() {
   const [residency, setResidency] = useState<Residency>("russia");
@@ -84,7 +79,6 @@ export default function TaxCalculator() {
     fairValueRub: 0,
     optionsCount: 0,
     usdRubRate: 100,
-    registrationType: "primary",
   });
   
   const [saleInputs, setSaleInputs] = useState<SaleInputs>({
@@ -122,13 +116,13 @@ export default function TaxCalculator() {
 
   // Conversion calculations
   const calculateConversion = () => {
-    const { strikePriceUsd, fairValueRub, optionsCount, usdRubRate, registrationType } = conversionInputs;
+    const { strikePriceUsd, fairValueRub, optionsCount, usdRubRate } = conversionInputs;
     
     // K = Strike price × USD/RUB × Quantity
     const K = strikePriceUsd * usdRubRate * optionsCount;
     
     // L = Registration fee in USD × USD/RUB
-    const L = REGISTRATION_FEES[registrationType] * usdRubRate;
+    const L = REGISTRATION_FEE * usdRubRate;
     
     // M = Fair Value × Quantity × 0.8 (20% discount)
     const M = fairValueRub * optionsCount * 0.8;
@@ -188,7 +182,7 @@ export default function TaxCalculator() {
             <p className="text-sm text-muted-foreground">Формула расчёта: N = M − (K + L)</p>
             <div className="text-sm space-y-1 mt-3">
               <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
-              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEES[conversionInputs.registrationType], "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
               <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueRub)} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
             </div>
           </div>
@@ -218,7 +212,7 @@ export default function TaxCalculator() {
           
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
             <div className="text-sm space-y-1">
-              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEES[conversionInputs.registrationType], "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
               <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(M)}</p>
             </div>
           </div>
@@ -561,25 +555,11 @@ export default function TaxCalculator() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Тип оформления</Label>
-                      <RadioGroup
-                        value={conversionInputs.registrationType}
-                        onValueChange={(v) => setConversionInputs(prev => ({ ...prev, registrationType: v as RegistrationType }))}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="primary" id="primary" />
-                          <Label htmlFor="primary" className="font-normal cursor-pointer">
-                            Первичное ($300)
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="secondary" id="secondary" />
-                          <Label htmlFor="secondary" className="font-normal cursor-pointer">
-                            Повторное ($150)
-                          </Label>
-                        </div>
-                      </RadioGroup>
+                      <Label>Обязательный платёж при регистрации</Label>
+                      <div className="p-3 rounded-lg bg-muted/50 border">
+                        <p className="text-lg font-semibold">$100</p>
+                        <p className="text-xs text-muted-foreground">Фиксированный платёж за регистрацию акций</p>
+                      </div>
                     </div>
                   </div>
                   
