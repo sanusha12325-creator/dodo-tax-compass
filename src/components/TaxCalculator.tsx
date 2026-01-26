@@ -510,7 +510,7 @@ export default function TaxCalculator() {
                           value={conversionInputs.strikePriceUsd || ""}
                           onChange={(e) => setConversionInputs(prev => ({ ...prev, strikePriceUsd: Number(e.target.value) }))}
                         />
-                        <p className="text-xs text-muted-foreground">Strike price опциона</p>
+                        <p className="text-xs text-muted-foreground">Цена, которая прописана в твоём опционном контракте, по которой ты имеешь право купить акцию</p>
                       </div>
                       
                       <div className="space-y-2">
@@ -534,7 +534,7 @@ export default function TaxCalculator() {
                         value={conversionInputs.fairValueRub || ""}
                         onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Fair Value за одну акцию в рублях</p>
+                      <p className="text-xs text-muted-foreground">Текущую цену акции ты можешь узнать у команды финансов или юристов. 3800 рублей — стоимость акции при оценке компании в $228 млн на 01.01.2025</p>
                     </div>
                     
                     <div className="space-y-2">
