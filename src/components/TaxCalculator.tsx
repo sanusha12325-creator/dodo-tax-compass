@@ -160,7 +160,7 @@ export default function TaxCalculator() {
         <div className="space-y-4">
           {/* Расходы на оформление + регистрация */}
           <div className="p-4 rounded-lg border-2 border-muted bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">Расходы на оформление + регистрация</p>
+            <p className="text-sm text-muted-foreground mb-1">Расходы на исполнение опциона и регистрацию прав на акции</p>
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold text-foreground">{formatCurrency(totalFormalizationUsd, "USD")}</p>
               <p className="text-lg text-muted-foreground">= {formatCurrency(totalFormalizationRub)}</p>
