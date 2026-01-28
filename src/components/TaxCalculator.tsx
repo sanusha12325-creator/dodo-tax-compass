@@ -146,14 +146,31 @@ export default function TaxCalculator() {
   const renderConversionResult = () => {
     const { K, L, M, N } = calculateConversion();
     
+    // Расходы на оформление в USD и RUB
+    const actualCostUsd = conversionInputs.strikePriceUsd * conversionInputs.optionsCount;
+    const totalFormalizationUsd = actualCostUsd + REGISTRATION_FEE;
+    const totalFormalizationRub = K + L;
+    
     if (residency === "russia") {
       const { tax, rate, breakdown } = calculateNdfl(N);
-      const totalExpenses = tax + L;
+      const totalExpenses = tax + L + K; // НДФЛ + регистрация + фактическая стоимость
       const netShareValue = M - totalExpenses;
       
       return (
         <div className="space-y-4">
-          {/* НДФЛ - первый и самый яркий блок */}
+          {/* Расходы на оформление + регистрация */}
+          <div className="p-4 rounded-lg border-2 border-muted bg-muted/20">
+            <p className="text-sm text-muted-foreground mb-1">Расходы на оформление + регистрация</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(totalFormalizationUsd, "USD")}</p>
+              <p className="text-lg text-muted-foreground">= {formatCurrency(totalFormalizationRub)}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Фактическая стоимость {formatCurrency(actualCostUsd, "USD")} + регистрация {formatCurrency(REGISTRATION_FEE, "USD")}
+            </p>
+          </div>
+          
+          {/* НДФЛ - яркий блок */}
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
             <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
             <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
@@ -169,7 +186,7 @@ export default function TaxCalculator() {
             <div className="p-4 rounded-lg bg-muted/30 border">
               <p className="text-sm text-muted-foreground mb-1">Общие расходы</p>
               <p className="text-lg font-semibold">{formatCurrency(totalExpenses)}</p>
-              <p className="text-xs text-muted-foreground">НДФЛ + регистрация</p>
+              <p className="text-xs text-muted-foreground">НДФЛ + регистрация + стоимость акций</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
               <p className="text-sm text-muted-foreground mb-1">Чистая стоимость акций</p>
