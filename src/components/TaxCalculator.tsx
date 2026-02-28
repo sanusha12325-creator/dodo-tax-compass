@@ -88,7 +88,7 @@ const calculateNdfl = (income: number): { tax: number; rate: string; breakdown: 
 
 const REGISTRATION_FEE = 100; // USD - обязательный платёж
 
-export default function TaxCalculator() {
+export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boolean }) {
   const [residency, setResidency] = useState<Residency>("russia");
   const [operation, setOperation] = useState<Operation>("options");
   const [isLoadingRate, setIsLoadingRate] = useState(false);
@@ -622,17 +622,20 @@ export default function TaxCalculator() {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        <header className="text-center space-y-2 mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-soft mb-4">
-            <Calculator className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">Калькулятор НДФЛ</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Расчёт налогов при операциях с опционами и акциями DP Global Group Ltd. после редомициляции в МФЦА Казахстана
-          </p>
-        </header>
+        {!hideHeader && (
+          <header className="text-center space-y-2 mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-soft mb-4">
+              <Calculator className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">Калькулятор НДФЛ</h1>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Расчёт налогов при операциях с опционами и акциями DP Global Group Ltd. после редомициляции в МФЦА Казахстана
+            </p>
+          </header>
+        )}
 
         {/* Как стать акционером — компактная ссылка */}
+        {!hideHeader && (
         <Collapsible>
           <CollapsibleTrigger className="w-full flex items-center justify-between p-4 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-muted/50 transition-colors group">
             <div className="flex items-center gap-3">
@@ -674,6 +677,7 @@ export default function TaxCalculator() {
             </div>
           </CollapsibleContent>
         </Collapsible>
+        )}
 
         <Card className="shadow-card">
           <CardHeader>
@@ -703,11 +707,11 @@ export default function TaxCalculator() {
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="options" className="flex items-center gap-1 text-xs sm:text-sm">
                   <Gift className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Получение</span>
+                  <span className="hidden sm:inline">Получение опциона</span>
                 </TabsTrigger>
                 <TabsTrigger value="conversion" className="flex items-center gap-1 text-xs sm:text-sm">
                   <ArrowRightLeft className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Конвертация</span>
+                  <span className="hidden sm:inline">Перевод в акцию</span>
                 </TabsTrigger>
                 <TabsTrigger value="dividends" className="flex items-center gap-1 text-xs sm:text-sm">
                   <Coins className="w-4 h-4 shrink-0" />
@@ -715,14 +719,14 @@ export default function TaxCalculator() {
                 </TabsTrigger>
                 <TabsTrigger value="sale" className="flex items-center gap-1 text-xs sm:text-sm">
                   <Banknote className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Продажа</span>
+                  <span className="hidden sm:inline">Продажа акций</span>
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="options" className="mt-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h3 className="font-medium mb-2">Получение опционов</h3>
+                    <h3 className="font-medium mb-2">Получение опциона</h3>
                     <p className="text-sm text-muted-foreground">
                       При получении опционов налог не возникает для резидентов любой страны.
                     </p>
@@ -734,7 +738,7 @@ export default function TaxCalculator() {
               <TabsContent value="conversion" className="mt-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h3 className="font-medium mb-2">Конвертация опционов в акции</h3>
+                    <h3 className="font-medium mb-2">Перевод опциона в акцию</h3>
                     <p className="text-sm text-muted-foreground">
                       Вы получаете доход в виде экономии при покупке акций по номинальной цене вместо рыночной.
                     </p>
