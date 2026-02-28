@@ -32,7 +32,7 @@ const Index = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-soft mb-2">
             <Calculator className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight whitespace-nowrap">
             Навигатор держателя опционов и акций
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
