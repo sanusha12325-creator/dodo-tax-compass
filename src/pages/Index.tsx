@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Coins, ArrowRightLeft, Calculator } from "lucide-react";
+import { Coins, ArrowRightLeft, Calculator, ChevronRight } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -10,24 +10,18 @@ const Index = () => {
       description: "Узнайте, получите ли вы дивиденды, сколько и нужно ли что-то делать",
       icon: Coins,
       path: "/dividends",
-      gradient: "from-emerald-500 to-teal-600",
-      hoverGradient: "hover:from-emerald-600 hover:to-teal-700",
     },
     {
       title: "Перевести опционы в акции",
       description: "Пошаговая инструкция и расчёт налога при конвертации",
       icon: ArrowRightLeft,
       path: "/convert",
-      gradient: "from-blue-500 to-indigo-600",
-      hoverGradient: "hover:from-blue-600 hover:to-indigo-700",
     },
     {
       title: "Рассчитать налог по операции",
       description: "Калькуляторы для всех типов операций с опционами и акциями",
       icon: Calculator,
       path: "/tax",
-      gradient: "from-violet-500 to-purple-600",
-      hoverGradient: "hover:from-violet-600 hover:to-purple-700",
     },
   ];
 
@@ -35,38 +29,39 @@ const Index = () => {
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-10">
         <header className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-primary shadow-soft mb-2">
-            <Calculator className="w-10 h-10 text-primary-foreground" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-soft mb-2">
+            <Calculator className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-            DP Tax & Dividend Compass 2026
+            DP Tax & Dividend Compass
           </h1>
-          <p className="text-muted-foreground max-w-lg mx-auto text-base leading-relaxed">
+          <p className="text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
             Информация по дивидендам, переводу опционов в акции и налоговым последствиям
           </p>
         </header>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {buttons.map((btn) => (
             <button
               key={btn.path}
               onClick={() => navigate(btn.path)}
-              className={`w-full p-6 rounded-2xl bg-gradient-to-r ${btn.gradient} ${btn.hoverGradient} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-left group`}
+              className="w-full p-5 rounded-xl bg-card border border-border hover:border-foreground/20 shadow-card hover:shadow-lg transition-all duration-200 text-left group"
             >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-white/15 backdrop-blur-sm shrink-0">
-                  <btn.icon className="w-6 h-6" />
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-lg bg-primary/8 shrink-0">
+                  <btn.icon className="w-5 h-5 text-foreground" />
                 </div>
-                <div className="space-y-1">
-                  <h2 className="text-lg font-bold">{btn.title}</h2>
-                  <p className="text-sm opacity-85 leading-relaxed">{btn.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base font-semibold text-foreground">{btn.title}</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">{btn.description}</p>
                 </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
               </div>
             </button>
           ))}
         </div>
 
-        <footer className="text-center text-xs text-muted-foreground pt-4">
+        <footer className="text-center text-xs text-muted-foreground pt-4 space-y-0.5">
           <p>Калькулятор предоставляет справочную информацию.</p>
           <p>Для точного расчёта рекомендуем консультацию с налоговым специалистом.</p>
         </footer>
