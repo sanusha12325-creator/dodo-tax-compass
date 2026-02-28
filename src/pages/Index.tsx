@@ -33,7 +33,7 @@ const Index = () => {
             <Calculator className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-            DP Tax & Dividend Compass
+            Навигатор по опционам, акциям и дивидендам 2026
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
             Информация по дивидендам, переводу опционов в акции и налоговым последствиям
