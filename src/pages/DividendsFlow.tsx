@@ -278,7 +278,7 @@ export default function DividendsFlow() {
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox id="isCurrShareholder" checked={isCurrentShareholder} onCheckedChange={c => setIsCurrentShareholder(c === true)} />
-            <Label htmlFor="isCurrShareholder" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером (315 € вместо 515 €)</Label>
+            <Label htmlFor="isCurrShareholder" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером</Label>
           </div>
         </div>
 
@@ -366,7 +366,7 @@ export default function DividendsFlow() {
         </div>
         <div className="flex items-center space-x-2">
           <Checkbox id="isCurrShare2" checked={isCurrentShareholder} onCheckedChange={c => setIsCurrentShareholder(c === true)} />
-          <Label htmlFor="isCurrShare2" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером (315 € вместо 515 €)</Label>
+          <Label htmlFor="isCurrShare2" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером</Label>
         </div>
       </div>
       <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueRub} className="w-full">
