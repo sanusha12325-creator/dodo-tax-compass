@@ -7,11 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw, FileText, ExternalLink, ChevronDown } from "lucide-react";
+import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw, FileText, ExternalLink, ChevronDown, TrendingUp, Coins } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type Residency = "russia" | "kazakhstan" | "other";
-type Operation = "options" | "conversion" | "sale";
+type Operation = "options" | "conversion" | "sale" | "dividends";
 type SaleType = "dodo_brands" | "dp_global" | "russian_company" | "foreign_or_individual";
 
 interface ConversionInputs {
@@ -23,6 +23,13 @@ interface ConversionInputs {
 
 type BuyerType = "new_shareholder" | "current_shareholder";
 
+interface ConversionInputs {
+  strikePriceUsd: number;
+  fairValueRub: number;
+  optionsCount: number;
+  usdRubRate: number;
+}
+
 interface SaleInputs {
   acquisitionCost: number;
   salePrice: number;
@@ -31,6 +38,17 @@ interface SaleInputs {
   usdRubRate: number;
   hasConvertedOptions: boolean;
   paidConversionTax: number;
+}
+
+interface DividendInputs {
+  dividendPerShareUsd: number;
+  sharesCount: number;
+  usdRubRate: number;
+  // Помощник: стоит ли конвертировать
+  checkConversion: boolean;
+  strikePriceUsd: number;
+  fairValueRub: number;
+  isCurrentShareholder: boolean;
 }
 
 const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
@@ -92,6 +110,16 @@ export default function TaxCalculator() {
     paidConversionTax: 0,
   });
 
+  const [dividendInputs, setDividendInputs] = useState<DividendInputs>({
+    dividendPerShareUsd: 0,
+    sharesCount: 0,
+    usdRubRate: 100,
+    checkConversion: false,
+    strikePriceUsd: 0.01,
+    fairValueRub: 0,
+    isCurrentShareholder: false,
+  });
+
   // Fetch USD/RUB exchange rate
   const fetchExchangeRate = async () => {
     setIsLoadingRate(true);
@@ -103,6 +131,7 @@ export default function TaxCalculator() {
         const roundedRate = Math.round(rate * 100) / 100;
         setConversionInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
         setSaleInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
+        setDividendInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
       }
     } catch (error) {
       console.error("Failed to fetch exchange rate:", error);
@@ -436,6 +465,160 @@ export default function TaxCalculator() {
     );
   };
 
+  // Dividend calculations
+  const calculateDividends = () => {
+    const { dividendPerShareUsd, sharesCount, usdRubRate } = dividendInputs;
+    const totalDividendsUsd = dividendPerShareUsd * sharesCount;
+    const totalDividendsRub = totalDividendsUsd * usdRubRate;
+    return { totalDividendsUsd, totalDividendsRub };
+  };
+
+  const calculateConversionCosts = () => {
+    const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate, isCurrentShareholder } = dividendInputs;
+    const registrationFee = isCurrentShareholder ? 315 : 515; // EUR, but treating as approximate USD equivalent for simplicity
+    const K = strikePriceUsd * usdRubRate * sharesCount;
+    const L = REGISTRATION_FEE * usdRubRate;
+    const M = fairValueRub * sharesCount * 0.8;
+    const N = M - (K + L);
+    
+    let conversionTax = 0;
+    if (residency === "russia" && N > 0) {
+      conversionTax = calculateNdfl(N).tax;
+    }
+    
+    const registrationCostRub = registrationFee * usdRubRate; // approximate
+    const totalConversionCost = K + registrationCostRub + conversionTax;
+    
+    return { K, L, M, N, conversionTax, registrationCostRub, registrationFee, totalConversionCost };
+  };
+
+  const renderDividendResult = () => {
+    const { totalDividendsUsd, totalDividendsRub } = calculateDividends();
+    
+    if (totalDividendsRub <= 0) return null;
+
+    if (residency === "russia") {
+      const { tax, rate, breakdown } = calculateNdfl(totalDividendsRub);
+      const netDividends = totalDividendsRub - tax;
+      
+      return (
+        <div className="space-y-4">
+          <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
+            <p className="text-sm opacity-90 mb-1">НДФЛ с дивидендов ({rate})</p>
+            <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
+            <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
+              <p className="text-sm text-muted-foreground mb-1">Дивиденды до налога</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-xl font-bold text-foreground">{formatCurrency(totalDividendsRub)}</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
+            </div>
+            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+              <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
+              <p className="text-xl font-bold text-success">{formatCurrency(netDividends)}</p>
+            </div>
+          </div>
+          
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Компания-эмитент не удерживает налог с дивидендов. Вы обязаны самостоятельно уплатить НДФЛ и подать декларацию 3-НДФЛ.
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+    
+    if (residency === "kazakhstan") {
+      return (
+        <div className="space-y-4">
+          <Alert className="border-success/30 bg-success/5">
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
+            <AlertDescription className="text-muted-foreground mt-2">
+              Для резидентов Казахстана дивиденды от компании МФЦА не облагаются ИПН.
+            </AlertDescription>
+          </Alert>
+          <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+            <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
+            <p className="text-xl font-bold text-success">{formatCurrency(totalDividendsRub)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-4">
+        <Alert className="border-warning/30 bg-warning/5">
+          <AlertTriangle className="h-5 w-5 text-warning" />
+          <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+          <AlertDescription className="text-muted-foreground mt-2">
+            Проанализируйте законодательство страны вашего резидентства для определения ставки налога на дивиденды от иностранной компании.
+          </AlertDescription>
+        </Alert>
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          <p className="text-sm text-muted-foreground mb-1">Сумма дивидендов</p>
+          <p className="text-xl font-bold">{formatCurrency(totalDividendsRub)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderConversionHelper = () => {
+    const { totalDividendsRub } = calculateDividends();
+    const { totalConversionCost, conversionTax, registrationCostRub, registrationFee, K } = calculateConversionCosts();
+    
+    if (totalDividendsRub <= 0 || dividendInputs.fairValueRub <= 0) return null;
+    
+    // Чистые дивиденды за выплату (после налога)
+    let netDividendsPerPayout = totalDividendsRub;
+    if (residency === "russia") {
+      netDividendsPerPayout = totalDividendsRub - calculateNdfl(totalDividendsRub).tax;
+    }
+    
+    const isProfitable = netDividendsPerPayout > totalConversionCost;
+    const paybackPayouts = netDividendsPerPayout > 0 ? Math.ceil(totalConversionCost / netDividendsPerPayout) : Infinity;
+    
+    return (
+      <div className="space-y-4">
+        <div className={`p-6 rounded-xl shadow-lg ${isProfitable ? 'bg-success/10 border-2 border-success/30' : 'bg-warning/10 border-2 border-warning/30'}`}>
+          <div className="flex items-center gap-2 mb-2">
+            {isProfitable ? <CheckCircle2 className="w-5 h-5 text-success" /> : <AlertTriangle className="w-5 h-5 text-warning" />}
+            <p className="font-semibold text-foreground">
+              {isProfitable 
+                ? 'Конвертация окупится с первой выплаты дивидендов!' 
+                : `Конвертация окупится за ${paybackPayouts === Infinity ? '∞' : paybackPayouts} выплат${paybackPayouts > 1 && paybackPayouts < 5 ? 'ы' : ''} дивидендов`
+              }
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            <p className="text-sm text-muted-foreground mb-1">Расходы на конвертацию</p>
+            <p className="text-xl font-bold text-foreground">{formatCurrency(totalConversionCost)}</p>
+            <div className="text-xs text-muted-foreground mt-2 space-y-0.5">
+              <p>Стоимость акций: {formatCurrency(K)}</p>
+              <p>Регистрация: {formatCurrency(registrationCostRub)} ({registrationFee} €)</p>
+              {residency === "russia" && conversionTax > 0 && <p>НДФЛ при конвертации: {formatCurrency(conversionTax)}</p>}
+            </div>
+          </div>
+          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды за выплату</p>
+            <p className="text-xl font-bold text-foreground">{formatCurrency(netDividendsPerPayout)}</p>
+            <p className="text-xs text-muted-foreground mt-2">После вычета налога</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -517,17 +700,21 @@ export default function TaxCalculator() {
           </CardHeader>
           <CardContent>
             <Tabs value={operation} onValueChange={(v) => setOperation(v as Operation)}>
-              <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="options" className="flex items-center gap-2">
-                  <Gift className="w-4 h-4" />
+              <TabsList className="grid grid-cols-4 w-full">
+                <TabsTrigger value="options" className="flex items-center gap-1 text-xs sm:text-sm">
+                  <Gift className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">Получение</span>
                 </TabsTrigger>
-                <TabsTrigger value="conversion" className="flex items-center gap-2">
-                  <ArrowRightLeft className="w-4 h-4" />
+                <TabsTrigger value="conversion" className="flex items-center gap-1 text-xs sm:text-sm">
+                  <ArrowRightLeft className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">Конвертация</span>
                 </TabsTrigger>
-                <TabsTrigger value="sale" className="flex items-center gap-2">
-                  <Banknote className="w-4 h-4" />
+                <TabsTrigger value="dividends" className="flex items-center gap-1 text-xs sm:text-sm">
+                  <Coins className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Дивиденды</span>
+                </TabsTrigger>
+                <TabsTrigger value="sale" className="flex items-center gap-1 text-xs sm:text-sm">
+                  <Banknote className="w-4 h-4 shrink-0" />
                   <span className="hidden sm:inline">Продажа</span>
                 </TabsTrigger>
               </TabsList>
@@ -627,6 +814,144 @@ export default function TaxCalculator() {
                   <div className="pt-4 border-t">
                     <h4 className="font-medium mb-3">Результат расчёта</h4>
                     {renderConversionResult()}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="dividends" className="mt-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <h3 className="font-medium mb-2">Получение дивидендов</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Расчёт налога на дивиденды и оценка выгодности конвертации опционов.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="dividendPerShare">Дивиденд на акцию ($)</Label>
+                        <Input
+                          id="dividendPerShare"
+                          type="number"
+                          step="0.01"
+                          placeholder="0"
+                          value={dividendInputs.dividendPerShareUsd || ""}
+                          onChange={(e) => setDividendInputs(prev => ({ ...prev, dividendPerShareUsd: Number(e.target.value) }))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="divSharesCount">Количество акций</Label>
+                        <Input
+                          id="divSharesCount"
+                          type="number"
+                          placeholder="0"
+                          value={dividendInputs.sharesCount || ""}
+                          onChange={(e) => setDividendInputs(prev => ({ ...prev, sharesCount: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="divUsdRate">Курс USD/RUB</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="divUsdRate"
+                          type="number"
+                          step="0.01"
+                          value={dividendInputs.usdRubRate || ""}
+                          onChange={(e) => setDividendInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
+                        />
+                        <button
+                          onClick={() => {
+                            setIsLoadingRate(true);
+                            fetch("https://www.cbr-xml-daily.ru/daily_json.js")
+                              .then(r => r.json())
+                              .then(data => {
+                                const rate = data.Valute?.USD?.Value;
+                                if (rate) setDividendInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
+                              })
+                              .finally(() => setIsLoadingRate(false));
+                          }}
+                          disabled={isLoadingRate}
+                          className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
+                          ЦБ РФ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {(dividendInputs.dividendPerShareUsd > 0 && dividendInputs.sharesCount > 0) && (
+                    <div className="pt-4 border-t">
+                      <h4 className="font-medium mb-3">Налог на дивиденды</h4>
+                      {renderDividendResult()}
+                    </div>
+                  )}
+                  
+                  {/* Помощник: стоит ли конвертировать */}
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Checkbox
+                        id="checkConversion"
+                        checked={dividendInputs.checkConversion}
+                        onCheckedChange={(checked) => setDividendInputs(prev => ({ ...prev, checkConversion: checked === true }))}
+                      />
+                      <Label htmlFor="checkConversion" className="font-normal cursor-pointer">
+                        У меня опционы — хочу понять, выгодно ли конвертировать ради дивидендов
+                      </Label>
+                    </div>
+                    
+                    {dividendInputs.checkConversion && (
+                      <div className="space-y-4 pl-0">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="divStrikePrice">Цена исполнения ($)</Label>
+                            <Input
+                              id="divStrikePrice"
+                              type="number"
+                              step="0.01"
+                              placeholder="0.01"
+                              value={dividendInputs.strikePriceUsd || ""}
+                              onChange={(e) => setDividendInputs(prev => ({ ...prev, strikePriceUsd: Number(e.target.value) }))}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="divFairValue">Стоимость акции (₽)</Label>
+                            <Input
+                              id="divFairValue"
+                              type="number"
+                              placeholder="0"
+                              value={dividendInputs.fairValueRub || ""}
+                              onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
+                            />
+                            <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="isCurrentShareholder"
+                            checked={dividendInputs.isCurrentShareholder}
+                            onCheckedChange={(checked) => setDividendInputs(prev => ({ ...prev, isCurrentShareholder: checked === true }))}
+                          />
+                          <Label htmlFor="isCurrentShareholder" className="font-normal cursor-pointer text-sm">
+                            Я уже являюсь акционером (регистрация 315 € вместо 515 €)
+                          </Label>
+                        </div>
+                        
+                        {(dividendInputs.dividendPerShareUsd > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
+                          <div className="pt-2">
+                            <h4 className="font-medium mb-3 flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4 text-primary" />
+                              Анализ окупаемости конвертации
+                            </h4>
+                            {renderConversionHelper()}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </TabsContent>
