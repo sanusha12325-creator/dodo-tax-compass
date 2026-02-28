@@ -7,8 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw, FileText, ExternalLink } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw, FileText, ExternalLink, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type Residency = "russia" | "kazakhstan" | "other";
 type Operation = "options" | "conversion" | "sale";
@@ -449,118 +449,48 @@ export default function TaxCalculator() {
           </p>
         </header>
 
-        {/* Как стать акционером */}
-        <Card className="shadow-card">
-          <CardHeader>
+        {/* Как стать акционером — компактная ссылка */}
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex items-center justify-between p-4 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-muted/50 transition-colors group">
             <div className="flex items-center gap-3">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
-                <FileText className="w-5 h-5 text-primary" />
+              <FileText className="w-5 h-5 text-primary" />
+              <span className="font-medium text-sm">Как стать акционером?</span>
+            </div>
+            <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-2 p-4 rounded-lg border bg-card space-y-4">
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm text-foreground">
+                  Если ты хочешь реализовать право на акции, заполни форму:
+                </p>
+                <a 
+                  href="https://pyrus.com/form/1437842" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Заполнить форму <ExternalLink className="w-4 h-4" />
+                </a>
               </div>
-              <div>
-                <CardTitle className="text-lg">Как стать акционером?</CardTitle>
-                <CardDescription>Пошаговый процесс оформления опционов в акции</CardDescription>
+
+              <div className="space-y-3 text-sm">
+                <p className="font-medium text-foreground">Пошаговый процесс:</p>
+                <ol className="space-y-2 text-muted-foreground list-none">
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">1</span><span>Ты заявляешь о намерении выкупить (оформить) опционы, заполняешь форму.</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">2</span><span>Происходит подсчёт завестившихся опционов. Мы сообщим о количестве (1–3 дня).</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">3</span><span>Юристы составляют решение о выпуске акций и договор, направляют на подпись через DocuSign (5–7 дней).</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">4</span><span>После подписания ты направляешь сканы паспортов (общегражданский + загран) и резюме. <em>Для новых акционеров, для действующих не применимо.</em></span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">5</span><span>Юристы направляют документы для KYC регистратору (1–3 дня).</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">6</span><span>Выставляется счёт за регистрацию и KYC: <strong>515 €</strong> (новый акционер) / <strong>315 €</strong> (действующий). Стоимость может меняться.</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">7</span><span>Счёт на оплату номинальной стоимости акций: <strong>$0,01/акция</strong>. После выставления нужно оплатить.</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">8</span><span>Юристы направляют акционерное соглашение с передачей прав голоса Федору (3–5 дней с момента оплаты).</span></li>
+                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">9</span><span>Регистратор оформляет акции и вносит изменения в корпоративный реестр.</span></li>
+                </ol>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
-              <p className="text-sm text-foreground">
-                Если ты хочешь реализовать право на акции, заполни форму:
-              </p>
-              <a 
-                href="https://pyrus.com/form/1437842" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-              >
-                Заполнить форму <ExternalLink className="w-4 h-4" />
-              </a>
-            </div>
-
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="step-1">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span> Заявление о намерении</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Ты заявляешь о намерении выкупить (оформить) опционы, заполняешь форму выше.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-2">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span> Подсчёт опционов (1–3 дня)</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  На первом этапе происходит подсчёт завестившихся опционов. После подсчёта мы тебе сообщим о количестве (1–3 дня с даты отправки тобой формы).
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-3">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span> Подготовка документов (5–7 дней)</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Юристы составляют решение о выпуске акций и договор, который направляют тебе на подпись через DocuSign на email, указанный тобой (5–7 дней с даты заполнения формы).
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-4">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">4</span> Подписание и документы</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  После подписания договора ты направляешь нам сканы паспортов (общегражданский + загран), резюме на текущую дату в свободной форме (на русском или английском, можно скачать с HH, LinkedIn). <span className="italic">Актуально для новых акционеров, для действующих не применимо.</span>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-5">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span> KYC регистратором (1–3 дня)</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Юристы направляют подготовленный комплект документов для KYC регистратору для внесения изменений в реестр компании (1–3 дня с даты подписания договора и получения документов по п. 4).
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-6">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span> Счёт за регистрацию и KYC</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Секретарь выставляет счёт за регистрацию и процедуру KYC. Регистрация на данный момент стоит <span className="font-semibold">515 евро</span> (для нового акционера) и <span className="font-semibold">315 евро</span> (для действующего акционера). Стоимость услуг регистратора может меняться, просьба уточнять стоимость на момент выкупа. <span className="italic">После редомициляции мы ожидаем, что сроки ожидания составят не более 14 дней.</span>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-7">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span> Счёт на оплату акций</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Бухгалтерия выставляет счёт на оплату номинальной стоимости акций из расчёта <span className="font-semibold">$0,01 за акцию</span> (одновременно со счётом по п. 6). После выставления счетов тебе нужно их оплатить.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-8">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">8</span> Акционерное соглашение (3–5 дней)</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Юристы направляют опционеру акционерное соглашение с передачей прав голоса Федору (оригинал соглашения на бумаге). Юристы готовят и направляют тебе документы, ты возвращаешь один экземпляр (3–5 дней с момента оплаты всех счетов).
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="step-9">
-                <AccordionTrigger className="text-sm">
-                  <span className="flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">9</span> Оформление акций в реестре</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">
-                  Регистратор оформляет акции и вносит изменения в корпоративный реестр. <span className="italic">Точных сроков нет, процедура достаточно длительная.</span>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+          </CollapsibleContent>
+        </Collapsible>
 
         <Card className="shadow-card">
           <CardHeader>
