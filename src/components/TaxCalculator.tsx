@@ -475,7 +475,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   const calculateConversionCosts = () => {
     const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate, isCurrentShareholder } = dividendInputs;
-    const registrationFee = isCurrentShareholder ? 315 : 515; // EUR, but treating as approximate USD equivalent for simplicity
+    const registrationFee = 100; // USD — одинаковая стоимость для всех при выпуске акций
     const K = strikePriceUsd * usdRubRate * sharesCount;
     const L = REGISTRATION_FEE * usdRubRate;
     const M = fairValueRub * sharesCount * 0.8;
@@ -486,7 +486,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       conversionTax = calculateNdfl(N).tax;
     }
     
-    const registrationCostRub = registrationFee * usdRubRate; // approximate
+    const registrationCostRub = registrationFee * usdRubRate;
     const totalConversionCost = K + registrationCostRub + conversionTax;
     
     return { K, L, M, N, conversionTax, registrationCostRub, registrationFee, totalConversionCost };
@@ -605,7 +605,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <p className="text-xl font-bold text-foreground">{formatCurrency(totalConversionCost)}</p>
             <div className="text-xs text-muted-foreground mt-2 space-y-0.5">
               <p>Стоимость акций: {formatCurrency(K)}</p>
-              <p>Регистрация: {formatCurrency(registrationCostRub)} ({registrationFee} €)</p>
+              <p>Регистрация: {formatCurrency(registrationCostRub)} ({formatCurrency(registrationFee, "USD")})</p>
               {residency === "russia" && conversionTax > 0 && <p>НДФЛ при конвертации: {formatCurrency(conversionTax)}</p>}
             </div>
           </div>
@@ -705,21 +705,21 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <CardContent>
             <Tabs value={operation} onValueChange={(v) => setOperation(v as Operation)}>
               <TabsList className="grid grid-cols-4 w-full">
-                <TabsTrigger value="options" className="flex items-center gap-1 text-xs sm:text-sm">
-                  <Gift className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Получение опциона</span>
+                <TabsTrigger value="options" className="flex items-center gap-1 text-xs px-1.5">
+                  <Gift className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Получение</span>
                 </TabsTrigger>
-                <TabsTrigger value="conversion" className="flex items-center gap-1 text-xs sm:text-sm">
-                  <ArrowRightLeft className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Перевод в акцию</span>
+                <TabsTrigger value="conversion" className="flex items-center gap-1 text-xs px-1.5">
+                  <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Конвертация</span>
                 </TabsTrigger>
-                <TabsTrigger value="dividends" className="flex items-center gap-1 text-xs sm:text-sm">
-                  <Coins className="w-4 h-4 shrink-0" />
+                <TabsTrigger value="dividends" className="flex items-center gap-1 text-xs px-1.5">
+                  <Coins className="w-3.5 h-3.5 shrink-0" />
                   <span className="hidden sm:inline">Дивиденды</span>
                 </TabsTrigger>
-                <TabsTrigger value="sale" className="flex items-center gap-1 text-xs sm:text-sm">
-                  <Banknote className="w-4 h-4 shrink-0" />
-                  <span className="hidden sm:inline">Продажа акций</span>
+                <TabsTrigger value="sale" className="flex items-center gap-1 text-xs px-1.5">
+                  <Banknote className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Продажа</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -941,7 +941,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                             onCheckedChange={(checked) => setDividendInputs(prev => ({ ...prev, isCurrentShareholder: checked === true }))}
                           />
                           <Label htmlFor="isCurrentShareholder" className="font-normal cursor-pointer text-sm">
-                            Я уже являюсь акционером (регистрация 315 € вместо 515 €)
+                            Я уже являюсь акционером
                           </Label>
                         </div>
                         
