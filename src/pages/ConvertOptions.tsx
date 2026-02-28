@@ -74,7 +74,7 @@ export default function ConvertOptions() {
       </div>
 
       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
-        <p className="font-medium text-foreground">Акция даёт:</p>
+        <p className="font-medium text-foreground">Акции дают:</p>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
