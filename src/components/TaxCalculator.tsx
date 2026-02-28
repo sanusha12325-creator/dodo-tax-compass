@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 type Residency = "russia" | "kazakhstan" | "other";
 type Operation = "options" | "conversion" | "sale" | "dividends";
-type SaleType = "dodo_brands" | "dp_global" | "russian_company" | "foreign_or_individual";
+type SaleType = "dp_global" | "russian_company" | "foreign_or_individual";
 
 interface ConversionInputs {
   strikePriceUsd: number;
@@ -103,7 +103,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   const [saleInputs, setSaleInputs] = useState<SaleInputs>({
     acquisitionCost: 0,
     salePrice: 0,
-    saleType: "foreign_or_individual",
+    saleType: "dp_global",
     buyerType: "new_shareholder",
     usdRubRate: 100,
     hasConvertedOptions: false,
@@ -341,10 +341,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       let selfPay = true;
       
       switch (saleInputs.saleType) {
-        case "dodo_brands":
-          paymentMethod = "Компания группы Dodo Brands перечислит НДФЛ за вас.";
-          selfPay = false;
-          break;
         case "dp_global":
           paymentMethod = "Вы должны самостоятельно уплатить НДФЛ.";
           break;
@@ -1047,7 +1043,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="dodo_brands">Компании группы Dodo Brands (buy-back)</SelectItem>
+                            <SelectItem value="dp_global">DP Global Group Ltd.</SelectItem>
                             <SelectItem value="dp_global">DP Global Group Ltd.</SelectItem>
                             <SelectItem value="russian_company">Другой российской компании</SelectItem>
                             <SelectItem value="foreign_or_individual">Иностранной компании или физ. лицу</SelectItem>
