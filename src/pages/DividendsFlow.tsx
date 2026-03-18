@@ -48,7 +48,7 @@ export default function DividendsFlow() {
   const [planToConvert, setPlanToConvert] = useState<boolean | null>(null);
   const [strikePriceUsd, setStrikePriceUsd] = useState(0.01);
   const [fairValueRub, setFairValueRub] = useState(0);
-  const [isCurrentShareholder, setIsCurrentShareholder] = useState(false);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
 
   useEffect(() => {
