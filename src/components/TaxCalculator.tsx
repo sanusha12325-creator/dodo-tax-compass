@@ -41,7 +41,7 @@ interface SaleInputs {
 }
 
 interface DividendInputs {
-  dividendPerShareUsd: number;
+  dividendPerShareRub: number;
   sharesCount: number;
   usdRubRate: number;
   // Помощник: стоит ли конвертировать
