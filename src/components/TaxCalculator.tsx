@@ -592,6 +592,15 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <p className="text-xs text-muted-foreground mt-2">После вычета налога</p>
           </div>
         </div>
+        
+        {residency === "russia" && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Расчёт упрощённый: налог на дивиденды и налог при конвертации рассчитаны раздельно. При совмещении доходов в одном году реальная ставка может быть выше из-за прогрессивной шкалы НДФЛ.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     );
   };
