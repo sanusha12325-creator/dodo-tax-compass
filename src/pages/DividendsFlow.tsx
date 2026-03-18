@@ -445,6 +445,13 @@ export default function DividendsFlow() {
             </div>
           </div>
         </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            Расчёт упрощённый: налог на дивиденды и налог при конвертации рассчитаны раздельно. При совмещении этих доходов в одном году реальная ставка может быть выше из-за прогрессивной шкалы НДФЛ (13% до 2,4 млн ₽, 15% сверх).
+          </AlertDescription>
+        </Alert>
       </div>
     );
   };
