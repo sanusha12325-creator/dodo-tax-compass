@@ -273,6 +273,19 @@ export default function ConvertOptions() {
       <div className="space-y-4">
         <h3 className="font-semibold">Налог при переводе опционов в акции</h3>
         <div className="space-y-3">
+          <div className="space-y-2">
+            <Label>Налоговое резидентство</Label>
+            <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="russia">🇷🇺 Россия</SelectItem>
+                <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
+                <SelectItem value="other">🌍 Другая страна</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Цена исполнения ($)</Label>
@@ -319,23 +332,6 @@ export default function ConvertOptions() {
           </div>
         </div>
 
-        <Card className="shadow-card">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <Label className="text-sm whitespace-nowrap">Резидентство</Label>
-              <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="russia">🇷🇺 Россия</SelectItem>
-                  <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
-                  <SelectItem value="other">🌍 Другая страна</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="flex gap-1">
           {[0, 1, 2].map(i => (
