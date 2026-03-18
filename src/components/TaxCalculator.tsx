@@ -111,7 +111,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   });
 
   const [dividendInputs, setDividendInputs] = useState<DividendInputs>({
-    dividendPerShareUsd: 0,
+    dividendPerShareRub: 0,
     sharesCount: 0,
     usdRubRate: 100,
     checkConversion: false,
