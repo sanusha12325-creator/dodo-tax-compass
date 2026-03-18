@@ -141,7 +141,7 @@ export default function DividendsFlow() {
   );
 
   const renderSharesResult = () => {
-    const { totalUsd, totalRub, tax, rate, breakdown, net } = calcDividends(sharesCount);
+    const { totalRub, tax, rate, breakdown, net } = calcDividends(sharesCount);
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Результат</h3>
@@ -153,7 +153,6 @@ export default function DividendsFlow() {
           <div className="p-4 rounded-lg border bg-muted/20">
             <p className="text-sm text-muted-foreground mb-1">Дивиденды до налога</p>
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
-            <p className="text-xs text-muted-foreground">{formatCurrency(totalUsd, "USD")}</p>
           </div>
           <div className="p-4 rounded-lg border bg-destructive/5">
             <p className="text-sm text-muted-foreground mb-1">НДФЛ ({rate})</p>
