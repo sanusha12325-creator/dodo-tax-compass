@@ -273,6 +273,19 @@ export default function ConvertOptions() {
       <div className="space-y-4">
         <h3 className="font-semibold">Налог при переводе опционов в акции</h3>
         <div className="space-y-3">
+          <div className="space-y-2">
+            <Label>Налоговое резидентство</Label>
+            <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="russia">🇷🇺 Россия</SelectItem>
+                <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
+                <SelectItem value="other">🌍 Другая страна</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Цена исполнения ($)</Label>
