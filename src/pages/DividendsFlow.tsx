@@ -48,7 +48,6 @@ export default function DividendsFlow() {
   const [planToConvert, setPlanToConvert] = useState<boolean | null>(null);
   const [strikePriceUsd, setStrikePriceUsd] = useState(0.01);
   const [fairValueRub, setFairValueRub] = useState(0);
-  const [isCurrentShareholder, setIsCurrentShareholder] = useState(false);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
 
   useEffect(() => {
@@ -88,7 +87,8 @@ export default function DividendsFlow() {
     const M = fairValueRub * count * 0.8;
     const N = M - (K + L);
     const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
-    const regFee = isCurrentShareholder ? 315 : 515;
+    // "both" = уже акционер (315), "only_options" = новый (515)
+    const regFee = ownership === "both" ? 315 : 515;
     const regCostRub = regFee * usdRubRate;
     const totalCost = K + regCostRub + conversionTax;
     return { K, L, M, N, conversionTax, regCostRub, regFee, totalCost };
@@ -317,9 +317,10 @@ export default function DividendsFlow() {
               </button>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox id="isCurrShareholder" checked={isCurrentShareholder} onCheckedChange={c => setIsCurrentShareholder(c === true)} />
-            <Label htmlFor="isCurrShareholder" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером</Label>
+          <div className="space-y-2">
+            <Label>Опционы (прошли вестинг)</Label>
+            <Input type="number" placeholder={String(optionsCount || 0)} value={optionsCount || ""} onChange={e => setOptionsCount(Number(e.target.value))} disabled />
+            <p className="text-xs text-muted-foreground">Значение с предыдущего шага</p>
           </div>
         </div>
 
@@ -425,10 +426,6 @@ export default function DividendsFlow() {
               <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} /> ЦБ РФ
             </button>
           </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox id="isCurrShare2" checked={isCurrentShareholder} onCheckedChange={c => setIsCurrentShareholder(c === true)} />
-          <Label htmlFor="isCurrShare2" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером</Label>
         </div>
       </div>
       <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueRub} className="w-full">
