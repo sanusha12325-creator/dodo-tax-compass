@@ -389,12 +389,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <AlertDescription>{paymentMethod}</AlertDescription>
           </Alert>
           
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              В Казахстане ИПН не взимается благодаря льготе МФЦА. Это не зависит от срока владения акциями.
-            </AlertDescription>
-          </Alert>
         </div>
       );
     }
