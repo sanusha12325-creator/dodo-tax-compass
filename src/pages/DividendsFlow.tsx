@@ -33,7 +33,7 @@ const calculateNdfl = (income: number) => {
 };
 
 const REGISTRATION_FEE = 100;
-const DIVIDEND_PER_SHARE_USD = 0; // user fills in
+
 
 export default function DividendsFlow() {
   const navigate = useNavigate();

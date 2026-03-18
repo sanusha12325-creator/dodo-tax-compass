@@ -833,8 +833,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                       </div>
                     </div>
                     
-                    <div className="space-y-2">
-                    </div>
                   </div>
                   
                   {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0) && (
