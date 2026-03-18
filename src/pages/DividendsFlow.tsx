@@ -71,10 +71,9 @@ export default function DividendsFlow() {
   };
 
   const calcDividends = (shares: number) => {
-    const totalUsd = dividendPerShare * shares;
-    const totalRub = totalUsd * usdRubRate;
+    const totalRub = dividendPerShare * shares;
     const { tax, rate, breakdown } = calculateNdfl(totalRub);
-    return { totalUsd, totalRub, tax, rate, breakdown, net: totalRub - tax };
+    return { totalRub, tax, rate, breakdown, net: totalRub - tax };
   };
 
   const calcConversionCosts = (count: number) => {
