@@ -877,7 +877,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     </div>
                   </div>
                   
-                  {(dividendInputs.dividendPerShareUsd > 0 && dividendInputs.sharesCount > 0) && (
+                  {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0) && (
                     <div className="pt-4 border-t">
                       <h4 className="font-medium mb-3">Налог на дивиденды</h4>
                       {renderDividendResult()}
