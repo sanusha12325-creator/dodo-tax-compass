@@ -49,7 +49,6 @@ export default function DividendsFlow() {
   const [strikePriceUsd, setStrikePriceUsd] = useState(0.01);
   const [fairValueRub, setFairValueRub] = useState(0);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
-  const [isLoadingRate, setIsLoadingRate] = useState(false);
 
   useEffect(() => {
     fetch("https://www.cbr-xml-daily.ru/daily_json.js")
