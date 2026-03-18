@@ -282,7 +282,6 @@ export default function DividendsFlow() {
               <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                 <div className="flex items-center gap-2 mb-1"><Coins className="w-4 h-4 text-primary" /><p className="text-sm text-muted-foreground">Потенциальные дивиденды после конвертации</p></div>
                 <p className="text-2xl font-bold">{formatCurrency(divs.totalRub)}</p>
-                <p className="text-xs text-muted-foreground">{formatCurrency(divs.totalUsd, "USD")}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
