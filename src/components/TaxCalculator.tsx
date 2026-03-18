@@ -23,13 +23,6 @@ interface ConversionInputs {
 
 type BuyerType = "new_shareholder" | "current_shareholder";
 
-interface ConversionInputs {
-  strikePriceUsd: number;
-  fairValueRub: number;
-  optionsCount: number;
-  usdRubRate: number;
-}
-
 interface SaleInputs {
   acquisitionCost: number;
   salePrice: number;
