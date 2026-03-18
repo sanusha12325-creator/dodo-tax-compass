@@ -1027,7 +1027,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="dp_global">DP Global Group Ltd.</SelectItem>
-                            <SelectItem value="dp_global">DP Global Group Ltd.</SelectItem>
                             <SelectItem value="russian_company">Другой российской компании</SelectItem>
                             <SelectItem value="foreign_or_individual">Иностранной компании или физ. лицу</SelectItem>
                           </SelectContent>
