@@ -463,10 +463,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   // Dividend calculations
   const calculateDividends = () => {
-    const { dividendPerShareUsd, sharesCount, usdRubRate } = dividendInputs;
-    const totalDividendsUsd = dividendPerShareUsd * sharesCount;
-    const totalDividendsRub = totalDividendsUsd * usdRubRate;
-    return { totalDividendsUsd, totalDividendsRub };
+    const { dividendPerShareRub, sharesCount } = dividendInputs;
+    const totalDividendsRub = dividendPerShareRub * sharesCount;
+    return { totalDividendsRub };
   };
 
   const calculateConversionCosts = () => {
