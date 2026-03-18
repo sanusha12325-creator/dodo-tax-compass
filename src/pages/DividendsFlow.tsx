@@ -130,17 +130,8 @@ export default function DividendsFlow() {
           <Input type="number" placeholder="0" value={sharesCount || ""} onChange={e => setSharesCount(Number(e.target.value))} />
         </div>
         <div className="space-y-2">
-          <Label>Дивиденд на акцию ($)</Label>
+          <Label>Дивиденд на акцию (₽)</Label>
           <Input type="number" step="0.01" placeholder="0" value={dividendPerShare || ""} onChange={e => setDividendPerShare(Number(e.target.value))} />
-        </div>
-        <div className="space-y-2">
-          <Label>Курс USD/RUB</Label>
-          <div className="flex gap-2">
-            <Input type="number" step="0.01" value={usdRubRate || ""} onChange={e => setUsdRubRate(Number(e.target.value))} />
-            <button onClick={fetchRate} disabled={isLoadingRate} className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm shrink-0">
-              <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} /> ЦБ РФ
-            </button>
-          </div>
         </div>
       </div>
       <Button onClick={() => setStep(2)} disabled={!sharesCount || !dividendPerShare} className="w-full">
