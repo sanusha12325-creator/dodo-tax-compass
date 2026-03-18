@@ -318,9 +318,10 @@ export default function DividendsFlow() {
               </button>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox id="isCurrShareholder" checked={isCurrentShareholder} onCheckedChange={c => setIsCurrentShareholder(c === true)} />
-            <Label htmlFor="isCurrShareholder" className="font-normal cursor-pointer text-sm">Я уже являюсь акционером</Label>
+          <div className="space-y-2">
+            <Label>Опционы (прошли вестинг)</Label>
+            <Input type="number" placeholder={String(optionsCount || 0)} value={optionsCount || ""} onChange={e => setOptionsCount(Number(e.target.value))} disabled />
+            <p className="text-xs text-muted-foreground">Значение с предыдущего шага</p>
           </div>
         </div>
 
