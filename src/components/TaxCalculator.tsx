@@ -41,7 +41,7 @@ interface SaleInputs {
 }
 
 interface DividendInputs {
-  dividendPerShareUsd: number;
+  dividendPerShareRub: number;
   sharesCount: number;
   usdRubRate: number;
   // Помощник: стоит ли конвертировать
@@ -111,7 +111,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   });
 
   const [dividendInputs, setDividendInputs] = useState<DividendInputs>({
-    dividendPerShareUsd: 0,
+    dividendPerShareRub: 0,
     sharesCount: 0,
     usdRubRate: 100,
     checkConversion: false,
@@ -463,10 +463,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   // Dividend calculations
   const calculateDividends = () => {
-    const { dividendPerShareUsd, sharesCount, usdRubRate } = dividendInputs;
-    const totalDividendsUsd = dividendPerShareUsd * sharesCount;
-    const totalDividendsRub = totalDividendsUsd * usdRubRate;
-    return { totalDividendsUsd, totalDividendsRub };
+    const { dividendPerShareRub, sharesCount } = dividendInputs;
+    const totalDividendsRub = dividendPerShareRub * sharesCount;
+    return { totalDividendsRub };
   };
 
   const calculateConversionCosts = () => {
@@ -489,7 +488,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   };
 
   const renderDividendResult = () => {
-    const { totalDividendsUsd, totalDividendsRub } = calculateDividends();
+    const { totalDividendsRub } = calculateDividends();
     
     if (totalDividendsRub <= 0) return null;
 
@@ -508,10 +507,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
               <p className="text-sm text-muted-foreground mb-1">Дивиденды до налога</p>
-              <div className="flex items-baseline gap-2">
-                <p className="text-xl font-bold text-foreground">{formatCurrency(totalDividendsRub)}</p>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
+              <p className="text-xl font-bold text-foreground">{formatCurrency(totalDividendsRub)}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
               <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
@@ -542,7 +538,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <div className="p-4 rounded-lg bg-success/10 border border-success/20">
             <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
             <p className="text-xl font-bold text-success">{formatCurrency(totalDividendsRub)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
           </div>
         </div>
       );
@@ -560,7 +555,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         <div className="p-4 rounded-lg bg-muted/30 border">
           <p className="text-sm text-muted-foreground mb-1">Сумма дивидендов</p>
           <p className="text-xl font-bold">{formatCurrency(totalDividendsRub)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
         </div>
       </div>
     );
@@ -830,14 +824,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="dividendPerShare">Дивиденд на акцию ($)</Label>
+                        <Label htmlFor="dividendPerShare">Дивиденд на акцию (₽)</Label>
                         <Input
                           id="dividendPerShare"
                           type="number"
                           step="0.01"
                           placeholder="0"
-                          value={dividendInputs.dividendPerShareUsd || ""}
-                          onChange={(e) => setDividendInputs(prev => ({ ...prev, dividendPerShareUsd: Number(e.target.value) }))}
+                          value={dividendInputs.dividendPerShareRub || ""}
+                          onChange={(e) => setDividendInputs(prev => ({ ...prev, dividendPerShareRub: Number(e.target.value) }))}
                         />
                       </div>
                       <div className="space-y-2">
@@ -853,37 +847,10 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="divUsdRate">Курс USD/RUB</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="divUsdRate"
-                          type="number"
-                          step="0.01"
-                          value={dividendInputs.usdRubRate || ""}
-                          onChange={(e) => setDividendInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
-                        />
-                        <button
-                          onClick={() => {
-                            setIsLoadingRate(true);
-                            fetch("https://www.cbr-xml-daily.ru/daily_json.js")
-                              .then(r => r.json())
-                              .then(data => {
-                                const rate = data.Valute?.USD?.Value;
-                                if (rate) setDividendInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
-                              })
-                              .finally(() => setIsLoadingRate(false));
-                          }}
-                          disabled={isLoadingRate}
-                          className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
-                        >
-                          <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
-                          ЦБ РФ
-                        </button>
-                      </div>
                     </div>
                   </div>
                   
-                  {(dividendInputs.dividendPerShareUsd > 0 && dividendInputs.sharesCount > 0) && (
+                  {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0) && (
                     <div className="pt-4 border-t">
                       <h4 className="font-medium mb-3">Налог на дивиденды</h4>
                       {renderDividendResult()}
@@ -905,6 +872,35 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     
                     {dividendInputs.checkConversion && (
                       <div className="space-y-4 pl-0">
+                        <div className="space-y-2">
+                          <Label htmlFor="divUsdRate">Курс USD/RUB</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="divUsdRate"
+                              type="number"
+                              step="0.01"
+                              value={dividendInputs.usdRubRate || ""}
+                              onChange={(e) => setDividendInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
+                            />
+                            <button
+                              onClick={() => {
+                                setIsLoadingRate(true);
+                                fetch("https://www.cbr-xml-daily.ru/daily_json.js")
+                                  .then(r => r.json())
+                                  .then(data => {
+                                    const rate = data.Valute?.USD?.Value;
+                                    if (rate) setDividendInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
+                                  })
+                                  .finally(() => setIsLoadingRate(false));
+                              }}
+                              disabled={isLoadingRate}
+                              className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
+                            >
+                              <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
+                              ЦБ РФ
+                            </button>
+                          </div>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="divStrikePrice">Цена исполнения ($)</Label>
@@ -941,7 +937,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           </Label>
                         </div>
                         
-                        {(dividendInputs.dividendPerShareUsd > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
+                        {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
                           <div className="pt-2">
                             <h4 className="font-medium mb-3 flex items-center gap-2">
                               <TrendingUp className="w-4 h-4 text-primary" />
