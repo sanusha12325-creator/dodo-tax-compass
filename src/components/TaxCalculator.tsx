@@ -847,33 +847,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="divUsdRate">Курс USD/RUB</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="divUsdRate"
-                          type="number"
-                          step="0.01"
-                          value={dividendInputs.usdRubRate || ""}
-                          onChange={(e) => setDividendInputs(prev => ({ ...prev, usdRubRate: Number(e.target.value) }))}
-                        />
-                        <button
-                          onClick={() => {
-                            setIsLoadingRate(true);
-                            fetch("https://www.cbr-xml-daily.ru/daily_json.js")
-                              .then(r => r.json())
-                              .then(data => {
-                                const rate = data.Valute?.USD?.Value;
-                                if (rate) setDividendInputs(prev => ({ ...prev, usdRubRate: Math.round(rate * 100) / 100 }));
-                              })
-                              .finally(() => setIsLoadingRate(false));
-                          }}
-                          disabled={isLoadingRate}
-                          className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
-                        >
-                          <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
-                          ЦБ РФ
-                        </button>
-                      </div>
                     </div>
                   </div>
                   
