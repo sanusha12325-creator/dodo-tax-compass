@@ -324,11 +324,10 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     const { acquisitionCost, salePrice, income, registrationFeeRub, registrationFeeUsd } = calculateSale();
     
     if (residency === "russia") {
-      // Уменьшаем налоговую базу на оплаченный налог при конвертации
-      const adjustedIncome = saleInputs.hasConvertedOptions 
-        ? Math.max(0, income - saleInputs.paidConversionTax) 
-        : income;
-      const { tax, rate, breakdown } = calculateNdfl(adjustedIncome);
+      const { tax: rawTax, rate, breakdown } = calculateNdfl(income);
+      // Уменьшаем налог к уплате на ранее оплаченный НДФЛ при конвертации
+      const conversionCredit = saleInputs.hasConvertedOptions ? saleInputs.paidConversionTax : 0;
+      const tax = Math.max(0, rawTax - conversionCredit);
       
       let paymentMethod = "";
       let selfPay = true;
@@ -355,17 +354,20 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
             <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
             <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
+            {conversionCredit > 0 && (
+              <p className="text-xs opacity-75 mt-1">С учётом зачёта ранее уплаченного НДФЛ</p>
+            )}
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
             <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, adjustedIncome))}</p>
-            {saleInputs.hasConvertedOptions && saleInputs.paidConversionTax > 0 && (
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, income))}</p>
+            {conversionCredit > 0 && (
               <div className="mt-3 pt-3 border-t border-primary/10">
-                <p className="text-xs text-muted-foreground mb-1">Расчёт с учётом оплаченного налога:</p>
+                <p className="text-xs text-muted-foreground mb-1">Зачёт ранее уплаченного НДФЛ:</p>
                 <p className="text-sm text-foreground">
-                  <span className="text-muted-foreground">Доход от продажи</span> {formatCurrency(income)} − <span className="text-muted-foreground">Оплаченный НДФЛ</span> {formatCurrency(saleInputs.paidConversionTax)} = {formatCurrency(Math.max(0, adjustedIncome))}
+                  <span className="text-muted-foreground">НДФЛ с дохода</span> {formatCurrency(rawTax)} − <span className="text-muted-foreground">Уплаченный НДФЛ при конвертации</span> {formatCurrency(conversionCredit)} = <span className="font-semibold">{formatCurrency(tax)}</span>
                 </p>
               </div>
             )}

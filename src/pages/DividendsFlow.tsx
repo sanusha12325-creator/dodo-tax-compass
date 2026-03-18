@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, CheckCircle2, AlertTriangle, Info, Coins, RefreshCw, TrendingUp, ChevronRight } from "lucide-react";
 
 type OwnershipType = null | "only_shares" | "only_options" | "both";
+type Residency = "russia" | "kazakhstan" | "other";
 
 const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
   return new Intl.NumberFormat("ru-RU", {
@@ -34,10 +36,10 @@ const calculateNdfl = (income: number) => {
 
 const REGISTRATION_FEE = 100;
 
-
 export default function DividendsFlow() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [residency, setResidency] = useState<Residency>("russia");
   const [ownership, setOwnership] = useState<OwnershipType>(null);
   const [sharesCount, setSharesCount] = useState(0);
   const [optionsCount, setOptionsCount] = useState(0);
@@ -72,8 +74,12 @@ export default function DividendsFlow() {
 
   const calcDividends = (shares: number) => {
     const totalRub = dividendPerShare * shares;
-    const { tax, rate, breakdown } = calculateNdfl(totalRub);
-    return { totalRub, tax, rate, breakdown, net: totalRub - tax };
+    if (residency === "russia") {
+      const { tax, rate, breakdown } = calculateNdfl(totalRub);
+      return { totalRub, tax, rate, breakdown, net: totalRub - tax };
+    }
+    // Kazakhstan & Other: no dividend tax from AIFC company
+    return { totalRub, tax: 0, rate: "0%", breakdown: "Налог не взимается", net: totalRub };
   };
 
   const calcConversionCosts = (count: number) => {
@@ -81,7 +87,7 @@ export default function DividendsFlow() {
     const L = REGISTRATION_FEE * usdRubRate;
     const M = fairValueRub * count * 0.8;
     const N = M - (K + L);
-    const conversionTax = N > 0 ? calculateNdfl(N).tax : 0;
+    const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
     const regFee = isCurrentShareholder ? 315 : 515;
     const regCostRub = regFee * usdRubRate;
     const totalCost = K + regCostRub + conversionTax;
@@ -95,6 +101,8 @@ export default function DividendsFlow() {
     setOptionsCount(0);
     setPlanToConvert(null);
   };
+
+  const taxLabel = residency === "russia" ? "НДФЛ" : residency === "kazakhstan" ? "ИПН" : "Налог";
 
   // --- SCREENS ---
 
@@ -142,6 +150,50 @@ export default function DividendsFlow() {
 
   const renderSharesResult = () => {
     const { totalRub, tax, rate, breakdown, net } = calcDividends(sharesCount);
+
+    if (residency === "kazakhstan") {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Результат</h3>
+          <Alert className="border-success/30 bg-success/5">
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
+            <AlertDescription className="text-muted-foreground mt-2">
+              Для резидентов Казахстана дивиденды от компании МФЦА не облагаются ИПН.
+            </AlertDescription>
+          </Alert>
+          <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
+            <p className="text-sm opacity-90 mb-1">Сумма к получению</p>
+            <p className="text-4xl font-bold">{formatCurrency(net)}</p>
+          </div>
+          <div className="p-4 rounded-lg border bg-muted/20">
+            <p className="text-sm text-muted-foreground mb-1">Дивиденды</p>
+            <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (residency === "other") {
+      return (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Результат</h3>
+          <Alert className="border-warning/30 bg-warning/5">
+            <AlertTriangle className="h-5 w-5 text-warning" />
+            <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+            <AlertDescription className="text-muted-foreground mt-2">
+              В Казахстане (МФЦА) налог на дивиденды не взимается. Проанализируйте законодательство страны вашего резидентства для определения ставки налога.
+            </AlertDescription>
+          </Alert>
+          <div className="p-4 rounded-lg border bg-muted/20">
+            <p className="text-sm text-muted-foreground mb-1">Сумма дивидендов</p>
+            <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Russia
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Результат</h3>
@@ -155,7 +207,7 @@ export default function DividendsFlow() {
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
           </div>
           <div className="p-4 rounded-lg border bg-destructive/5">
-            <p className="text-sm text-muted-foreground mb-1">НДФЛ ({rate})</p>
+            <p className="text-sm text-muted-foreground mb-1">{taxLabel} ({rate})</p>
             <p className="text-lg font-bold">{formatCurrency(tax)}</p>
           </div>
         </div>
@@ -274,7 +326,6 @@ export default function DividendsFlow() {
         {dividendPerShare > 0 && fairValueRub > 0 && (() => {
           const divs = calcDividends(optionsCount);
           const conv = calcConversionCosts(optionsCount);
-          const convTaxInfo = calculateNdfl(Math.max(0, conv.N));
           const netAfterAll = divs.net - conv.totalCost;
 
           return (
@@ -285,19 +336,42 @@ export default function DividendsFlow() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-lg border bg-muted/20">
-                  <p className="text-xs text-muted-foreground mb-1">🧾 Налог при конвертации</p>
-                  <p className="text-lg font-bold">{formatCurrency(conv.conversionTax)}</p>
-                </div>
-                <div className="p-4 rounded-lg border bg-muted/20">
-                  <p className="text-xs text-muted-foreground mb-1">🧾 Налог на дивиденды</p>
-                  <p className="text-lg font-bold">{formatCurrency(divs.tax)}</p>
-                </div>
+                {residency === "russia" && (
+                  <>
+                    <div className="p-4 rounded-lg border bg-muted/20">
+                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} при конвертации</p>
+                      <p className="text-lg font-bold">{formatCurrency(conv.conversionTax)}</p>
+                    </div>
+                    <div className="p-4 rounded-lg border bg-muted/20">
+                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} на дивиденды</p>
+                      <p className="text-lg font-bold">{formatCurrency(divs.tax)}</p>
+                    </div>
+                  </>
+                )}
+                {residency === "kazakhstan" && (
+                  <div className="p-4 rounded-lg border bg-success/10 col-span-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-success" />
+                      <p className="text-sm text-success font-medium">ИПН не взимается (льгота МФЦА)</p>
+                    </div>
+                  </div>
+                )}
+                {residency === "other" && (
+                  <div className="p-4 rounded-lg border bg-warning/10 col-span-2">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-warning" />
+                      <p className="text-sm text-warning font-medium">Проверьте налоговое законодательство вашей страны</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
                 <p className="text-sm opacity-90 mb-1">💵 Итог к получению (дивиденды − все расходы)</p>
                 <p className="text-4xl font-bold">{formatCurrency(Math.max(0, netAfterAll))}</p>
+                {residency === "other" && (
+                  <p className="text-xs opacity-75 mt-1">Без учёта возможного местного налога</p>
+                )}
               </div>
 
               <Alert className="border-warning/30 bg-warning/5">
@@ -364,10 +438,7 @@ export default function DividendsFlow() {
   );
 
   const renderBothResult = () => {
-    // Scenario 1: No conversion — dividends only on shares
     const scenario1 = calcDividends(sharesCount);
-
-    // Scenario 2: With conversion — dividends on shares + options
     const totalShares = sharesCount + optionsCount;
     const scenario2Divs = calcDividends(totalShares);
     const conv = calcConversionCosts(optionsCount);
@@ -378,6 +449,24 @@ export default function DividendsFlow() {
       <div className="space-y-6">
         <h3 className="text-lg font-semibold">Сравнительный расчёт</h3>
 
+        {residency === "kazakhstan" && (
+          <Alert className="border-success/30 bg-success/5">
+            <CheckCircle2 className="h-4 w-4 text-success" />
+            <AlertDescription className="text-sm">
+              Для резидентов Казахстана ИПН не взимается на дивиденды и конвертацию (льгота МФЦА).
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {residency === "other" && (
+          <Alert className="border-warning/30 bg-warning/5">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-sm">
+              В МФЦА налог не взимается. Проверьте налоговое законодательство вашей страны — возможно, потребуется уплатить местный налог.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Scenario 1 */}
         <div className="p-4 rounded-xl border-2 border-muted space-y-3">
           <h4 className="font-semibold flex items-center gap-2">
@@ -385,15 +474,17 @@ export default function DividendsFlow() {
             Без конвертации
           </h4>
           <p className="text-sm text-muted-foreground">Дивиденды только по текущим {sharesCount} акциям</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid gap-2 ${residency === "russia" ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div className="p-3 rounded-lg bg-muted/30">
               <p className="text-xs text-muted-foreground">До налога</p>
               <p className="font-bold">{formatCurrency(scenario1.totalRub)}</p>
             </div>
-            <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs text-muted-foreground">НДФЛ</p>
-              <p className="font-bold">{formatCurrency(scenario1.tax)}</p>
-            </div>
+            {residency === "russia" && (
+              <div className="p-3 rounded-lg bg-muted/30">
+                <p className="text-xs text-muted-foreground">{taxLabel}</p>
+                <p className="font-bold">{formatCurrency(scenario1.tax)}</p>
+              </div>
+            )}
             <div className="p-3 rounded-lg bg-success/10 border border-success/20">
               <p className="text-xs text-muted-foreground">Итого</p>
               <p className="font-bold text-success">{formatCurrency(scenario1.net)}</p>
@@ -413,10 +504,12 @@ export default function DividendsFlow() {
               <p className="text-xs text-muted-foreground">Дивиденды до налога</p>
               <p className="font-bold">{formatCurrency(scenario2Divs.totalRub)}</p>
             </div>
-            <div className="p-3 rounded-lg bg-background/50">
-              <p className="text-xs text-muted-foreground">НДФЛ на дивиденды</p>
-              <p className="font-bold">{formatCurrency(scenario2Divs.tax)}</p>
-            </div>
+            {residency === "russia" && (
+              <div className="p-3 rounded-lg bg-background/50">
+                <p className="text-xs text-muted-foreground">{taxLabel} на дивиденды</p>
+                <p className="font-bold">{formatCurrency(scenario2Divs.tax)}</p>
+              </div>
+            )}
             <div className="p-3 rounded-lg bg-background/50">
               <p className="text-xs text-muted-foreground">Расходы на конвертацию</p>
               <p className="font-bold">{formatCurrency(conv.totalCost)}</p>
@@ -446,12 +539,14 @@ export default function DividendsFlow() {
           </div>
         </div>
 
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            Расчёт упрощённый: налог на дивиденды и налог при конвертации рассчитаны раздельно. При совмещении этих доходов в одном году реальная ставка может быть выше из-за прогрессивной шкалы НДФЛ (13% до 2,4 млн ₽, 15% сверх).
-          </AlertDescription>
-        </Alert>
+        {residency === "russia" && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Расчёт упрощённый: налог на дивиденды и налог при конвертации рассчитаны раздельно. При совмещении этих доходов в одном году реальная ставка может быть выше из-за прогрессивной шкалы НДФЛ (13% до 2,4 млн ₽, 15% сверх).
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     );
   };
@@ -493,6 +588,25 @@ export default function DividendsFlow() {
             <p className="text-sm text-muted-foreground">Узнайте, получите ли вы дивиденды и сколько</p>
           </div>
         </div>
+
+        {/* Residency selector */}
+        <Card className="shadow-card">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <Label className="text-sm whitespace-nowrap">Резидентство</Label>
+              <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="russia">🇷🇺 Россия</SelectItem>
+                  <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
+                  <SelectItem value="other">🌍 Другая страна</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Progress */}
         {ownership && (
