@@ -488,7 +488,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   };
 
   const renderDividendResult = () => {
-    const { totalDividendsUsd, totalDividendsRub } = calculateDividends();
+    const { totalDividendsRub } = calculateDividends();
     
     if (totalDividendsRub <= 0) return null;
 
