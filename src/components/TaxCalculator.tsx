@@ -824,14 +824,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="dividendPerShare">Дивиденд на акцию ($)</Label>
+                        <Label htmlFor="dividendPerShare">Дивиденд на акцию (₽)</Label>
                         <Input
                           id="dividendPerShare"
                           type="number"
                           step="0.01"
                           placeholder="0"
-                          value={dividendInputs.dividendPerShareUsd || ""}
-                          onChange={(e) => setDividendInputs(prev => ({ ...prev, dividendPerShareUsd: Number(e.target.value) }))}
+                          value={dividendInputs.dividendPerShareRub || ""}
+                          onChange={(e) => setDividendInputs(prev => ({ ...prev, dividendPerShareRub: Number(e.target.value) }))}
                         />
                       </div>
                       <div className="space-y-2">
