@@ -538,7 +538,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <div className="p-4 rounded-lg bg-success/10 border border-success/20">
             <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
             <p className="text-xl font-bold text-success">{formatCurrency(totalDividendsRub)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{formatCurrency(totalDividendsUsd, "USD")}</p>
           </div>
         </div>
       );
