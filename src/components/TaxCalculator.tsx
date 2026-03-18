@@ -935,7 +935,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           </Label>
                         </div>
                         
-                        {(dividendInputs.dividendPerShareUsd > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
+                        {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
                           <div className="pt-2">
                             <h4 className="font-medium mb-3 flex items-center gap-2">
                               <TrendingUp className="w-4 h-4 text-primary" />
