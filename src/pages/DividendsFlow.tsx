@@ -148,12 +148,29 @@ export default function DividendsFlow() {
     </div>
   );
 
+  const renderResidencySelector = () => (
+    <div className="flex items-center gap-3 mb-4">
+      <Label className="text-sm whitespace-nowrap">Резидентство</Label>
+      <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="russia">🇷🇺 Россия</SelectItem>
+          <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
+          <SelectItem value="other">🌍 Другая страна</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   const renderSharesResult = () => {
     const { totalRub, tax, rate, breakdown, net } = calcDividends(sharesCount);
 
     if (residency === "kazakhstan") {
       return (
         <div className="space-y-4">
+          {renderResidencySelector()}
           <h3 className="text-lg font-semibold">Результат</h3>
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-5 w-5 text-success" />
@@ -177,6 +194,7 @@ export default function DividendsFlow() {
     if (residency === "other") {
       return (
         <div className="space-y-4">
+          {renderResidencySelector()}
           <h3 className="text-lg font-semibold">Результат</h3>
           <Alert className="border-warning/30 bg-warning/5">
             <AlertTriangle className="h-5 w-5 text-warning" />
@@ -196,6 +214,7 @@ export default function DividendsFlow() {
     // Russia
     return (
       <div className="space-y-4">
+        {renderResidencySelector()}
         <h3 className="text-lg font-semibold">Результат</h3>
         <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
           <p className="text-sm opacity-90 mb-1">Сумма к получению</p>
@@ -291,6 +310,7 @@ export default function DividendsFlow() {
     // planToConvert === true — show calculation
     return (
       <div className="space-y-4">
+        {renderResidencySelector()}
         <h3 className="text-lg font-semibold">Расчёт при конвертации</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
@@ -444,6 +464,7 @@ export default function DividendsFlow() {
 
     return (
       <div className="space-y-6">
+        {renderResidencySelector()}
         <h3 className="text-lg font-semibold">Сравнительный расчёт</h3>
 
         {residency === "kazakhstan" && (
@@ -586,24 +607,6 @@ export default function DividendsFlow() {
           </div>
         </div>
 
-        {/* Residency selector */}
-        <Card className="shadow-card">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <Label className="text-sm whitespace-nowrap">Резидентство</Label>
-              <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="russia">🇷🇺 Россия</SelectItem>
-                  <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
-                  <SelectItem value="other">🌍 Другая страна</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Progress */}
         {ownership && (
