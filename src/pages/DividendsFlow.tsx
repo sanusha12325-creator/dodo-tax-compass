@@ -586,24 +586,6 @@ export default function DividendsFlow() {
           </div>
         </div>
 
-        {/* Residency selector */}
-        <Card className="shadow-card">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-3">
-              <Label className="text-sm whitespace-nowrap">Резидентство</Label>
-              <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="russia">🇷🇺 Россия</SelectItem>
-                  <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
-                  <SelectItem value="other">🌍 Другая страна</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Progress */}
         {ownership && (
