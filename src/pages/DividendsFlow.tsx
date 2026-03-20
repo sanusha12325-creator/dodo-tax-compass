@@ -464,6 +464,7 @@ export default function DividendsFlow() {
 
     return (
       <div className="space-y-6">
+        {renderResidencySelector()}
         <h3 className="text-lg font-semibold">Сравнительный расчёт</h3>
 
         {residency === "kazakhstan" && (
