@@ -310,6 +310,7 @@ export default function DividendsFlow() {
     // planToConvert === true — show calculation
     return (
       <div className="space-y-4">
+        {renderResidencySelector()}
         <h3 className="text-lg font-semibold">Расчёт при конвертации</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
