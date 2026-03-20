@@ -1070,7 +1070,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               value={saleInputs.paidConversionTax || ""}
                               onChange={(e) => setSaleInputs(prev => ({ ...prev, paidConversionTax: Number(e.target.value) }))}
                             />
-                            <p className="text-xs text-muted-foreground">Эта сумма уменьшит налоговую базу при расчёте НДФЛ</p>
+                            <p className="text-xs text-muted-foreground">Эта сумма уменьшит налог к уплате</p>
                           </div>
                         )}
                       </div>
