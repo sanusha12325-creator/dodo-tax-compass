@@ -170,6 +170,7 @@ export default function DividendsFlow() {
     if (residency === "kazakhstan") {
       return (
         <div className="space-y-4">
+          {renderResidencySelector()}
           <h3 className="text-lg font-semibold">Результат</h3>
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-5 w-5 text-success" />
