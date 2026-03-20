@@ -214,6 +214,7 @@ export default function DividendsFlow() {
     // Russia
     return (
       <div className="space-y-4">
+        {renderResidencySelector()}
         <h3 className="text-lg font-semibold">Результат</h3>
         <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
           <p className="text-sm opacity-90 mb-1">Сумма к получению</p>
