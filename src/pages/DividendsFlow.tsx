@@ -194,6 +194,7 @@ export default function DividendsFlow() {
     if (residency === "other") {
       return (
         <div className="space-y-4">
+          {renderResidencySelector()}
           <h3 className="text-lg font-semibold">Результат</h3>
           <Alert className="border-warning/30 bg-warning/5">
             <AlertTriangle className="h-5 w-5 text-warning" />
