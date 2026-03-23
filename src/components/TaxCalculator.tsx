@@ -922,16 +922,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="isCurrentShareholder"
-                            checked={dividendInputs.isCurrentShareholder}
-                            onCheckedChange={(checked) => setDividendInputs(prev => ({ ...prev, isCurrentShareholder: checked === true }))}
-                          />
-                          <Label htmlFor="isCurrentShareholder" className="font-normal cursor-pointer text-sm">
-                            Я уже являюсь акционером
-                          </Label>
-                        </div>
                         
                         {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
                           <div className="pt-2">
