@@ -312,7 +312,7 @@ export default function ConvertOptions() {
           </div>
         </div>
 
-        {optionsCount > 0 && fairValueRub > 0 && renderResult()}
+        {optionsCount > 0 && fairValueUsd > 0 && renderResult()}
       </div>
     );
   };

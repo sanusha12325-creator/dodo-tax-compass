@@ -911,13 +911,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="divFairValue">Стоимость акции (₽)</Label>
+                            <Label htmlFor="divFairValue">Расчетная стоимость акции ($)</Label>
                             <Input
                               id="divFairValue"
                               type="number"
+                              step="0.01"
                               placeholder="0"
-                              value={dividendInputs.fairValueRub || ""}
-                              onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
+                              value={dividendInputs.fairValueUsd || ""}
+                              onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                             />
                             <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
                           </div>

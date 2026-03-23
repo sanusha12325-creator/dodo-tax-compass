@@ -448,7 +448,7 @@ export default function DividendsFlow() {
           </div>
         </div>
       </div>
-      <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueRub} className="w-full">
+      <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueUsd} className="w-full">
         Сравнить сценарии <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
     </div>
