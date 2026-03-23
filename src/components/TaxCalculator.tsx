@@ -553,7 +553,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     const { totalDividendsRub } = calculateDividends();
     const { totalConversionCost, conversionTax, registrationCostRub, registrationFee, K } = calculateConversionCosts();
     
-    if (totalDividendsRub <= 0 || dividendInputs.fairValueRub <= 0) return null;
+    if (totalDividendsRub <= 0 || dividendInputs.fairValueUsd <= 0) return null;
     
     // Чистые дивиденды за выплату (после налога)
     let netDividendsPerPayout = totalDividendsRub;
