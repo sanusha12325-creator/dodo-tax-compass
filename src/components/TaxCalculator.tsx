@@ -41,7 +41,7 @@ interface DividendInputs {
   checkConversion: boolean;
   strikePriceUsd: number;
   fairValueRub: number;
-  isCurrentShareholder: boolean;
+  
 }
 
 const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
@@ -110,7 +110,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     checkConversion: false,
     strikePriceUsd: 0.01,
     fairValueRub: 0,
-    isCurrentShareholder: false,
+    
   });
 
   // Fetch USD/RUB exchange rate
@@ -458,7 +458,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   };
 
   const calculateConversionCosts = () => {
-    const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate, isCurrentShareholder } = dividendInputs;
+    const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate } = dividendInputs;
     const registrationFee = 100; // USD — одинаковая стоимость для всех при выпуске акций
     const K = strikePriceUsd * usdRubRate * sharesCount;
     const L = REGISTRATION_FEE * usdRubRate;
@@ -922,16 +922,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="isCurrentShareholder"
-                            checked={dividendInputs.isCurrentShareholder}
-                            onCheckedChange={(checked) => setDividendInputs(prev => ({ ...prev, isCurrentShareholder: checked === true }))}
-                          />
-                          <Label htmlFor="isCurrentShareholder" className="font-normal cursor-pointer text-sm">
-                            Я уже являюсь акционером
-                          </Label>
-                        </div>
                         
                         {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
                           <div className="pt-2">
