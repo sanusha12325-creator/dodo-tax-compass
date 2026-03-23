@@ -41,7 +41,7 @@ interface DividendInputs {
   checkConversion: boolean;
   strikePriceUsd: number;
   fairValueRub: number;
-  isCurrentShareholder: boolean;
+  
 }
 
 const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
