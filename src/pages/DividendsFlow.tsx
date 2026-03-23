@@ -198,9 +198,9 @@ export default function DividendsFlow() {
           <h3 className="text-lg font-semibold">Результат</h3>
           <Alert className="border-warning/30 bg-warning/5">
             <AlertTriangle className="h-5 w-5 text-warning" />
-            <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+            <AlertTitle className="text-warning font-semibold">Информация</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              В Казахстане (МФЦА) налог на дивиденды не взимается. Проанализируйте законодательство страны вашего резидентства для определения ставки налога.
+              Если вы налоговый резидент другой страны, с дивидендов в РФ удерживается налог 15%, а окончательная сумма налога зависит от страны вашего налогового резидентства.
             </AlertDescription>
           </Alert>
           <div className="p-4 rounded-lg border bg-muted/20">
