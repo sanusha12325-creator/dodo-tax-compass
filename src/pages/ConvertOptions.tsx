@@ -190,7 +190,7 @@ export default function ConvertOptions() {
               <p className="text-muted-foreground">Формула: N = M − (K + L)</p>
               <p><span className="font-medium">K</span>: {formatCurrency(strikePriceUsd, "USD")} × {usdRubRate} × {optionsCount} = {formatCurrency(K)}</p>
               <p><span className="font-medium">L</span>: {formatCurrency(REGISTRATION_FEE, "USD")} × {usdRubRate} = {formatCurrency(L)}</p>
-              <p><span className="font-medium">M</span>: {formatCurrency(fairValueRub)} × {optionsCount} × 0.8 = {formatCurrency(M)}</p>
+              <p><span className="font-medium">M</span>: {formatCurrency(fairValueUsd, "USD")} × {usdRubRate} × {optionsCount} × 0.8 = {formatCurrency(M)}</p>
             </div>
 
             <Alert>
