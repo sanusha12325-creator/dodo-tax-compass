@@ -769,7 +769,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         value={conversionInputs.fairValueUsd || ""}
                         onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Расчетную стоимость акции можно узнать у команды финансов или юристов. $38 — стоимость акции при оценке компании в $228 млн на 01.01.2025</p>
+                      <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
                     </div>
                     
                     <div className="space-y-2">
@@ -920,7 +920,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               value={dividendInputs.fairValueUsd || ""}
                               onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                             />
-                            <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
+                            <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
                           </div>
                         </div>
                         

@@ -325,8 +325,8 @@ export default function DividendsFlow() {
           </div>
           <div className="space-y-2">
             <Label>Расчетная стоимость акции ($)</Label>
-            <Input type="number" step="0.01" placeholder="38" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
-            <p className="text-xs text-muted-foreground">$38 при оценке $228 млн на 01.01.2025</p>
+            <Input type="number" step="0.01" placeholder="11.19" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+            <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
           </div>
           <div className="space-y-2">
             <Label>Курс USD/RUB</Label>
@@ -435,8 +435,8 @@ export default function DividendsFlow() {
         </div>
         <div className="space-y-2">
           <Label>Расчетная стоимость акции ($)</Label>
-          <Input type="number" step="0.01" placeholder="38" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
-          <p className="text-xs text-muted-foreground">$38 при оценке $228 млн</p>
+          <Input type="number" step="0.01" placeholder="11.19" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+          <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
         </div>
         <div className="space-y-2">
           <Label>Курс USD/RUB</Label>
