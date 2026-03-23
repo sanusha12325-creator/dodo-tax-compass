@@ -16,7 +16,7 @@ type SaleType = "dp_global" | "russian_company" | "foreign_or_individual";
 
 interface ConversionInputs {
   strikePriceUsd: number;
-  fairValueRub: number;
+  fairValueUsd: number;
   optionsCount: number;
   usdRubRate: number;
 }
