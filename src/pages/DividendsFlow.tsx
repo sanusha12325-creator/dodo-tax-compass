@@ -84,7 +84,7 @@ export default function DividendsFlow() {
   const calcConversionCosts = (count: number) => {
     const K = strikePriceUsd * usdRubRate * count;
     const L = REGISTRATION_FEE * usdRubRate;
-    const M = fairValueRub * count * 0.8;
+    const M = fairValueUsd * usdRubRate * count * 0.8;
     const N = M - (K + L);
     const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
     // "both" = уже акционер (315), "only_options" = новый (515)
