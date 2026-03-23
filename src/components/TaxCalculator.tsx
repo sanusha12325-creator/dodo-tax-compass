@@ -760,15 +760,16 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="fairValueRub">Текущая стоимость акции (₽)</Label>
+                      <Label htmlFor="fairValueUsd">Расчетная стоимость акции ($)</Label>
                       <Input
-                        id="fairValueRub"
+                        id="fairValueUsd"
                         type="number"
+                        step="0.01"
                         placeholder="0"
-                        value={conversionInputs.fairValueRub || ""}
-                        onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
+                        value={conversionInputs.fairValueUsd || ""}
+                        onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Текущую цену акции ты можешь узнать у команды финансов или юристов. 3800 рублей — стоимость акции при оценке компании в $228 млн на 01.01.2025</p>
+                      <p className="text-xs text-muted-foreground">Расчетную стоимость акции можно узнать у команды финансов или юристов. $38 — стоимость акции при оценке компании в $228 млн на 01.01.2025</p>
                     </div>
                     
                     <div className="space-y-2">
