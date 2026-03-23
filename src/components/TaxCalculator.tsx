@@ -109,7 +109,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     usdRubRate: 100,
     checkConversion: false,
     strikePriceUsd: 0.01,
-    fairValueRub: 0,
+    fairValueUsd: 0,
     
   });
 
