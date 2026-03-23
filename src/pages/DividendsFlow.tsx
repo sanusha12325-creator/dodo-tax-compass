@@ -235,7 +235,7 @@ export default function DividendsFlow() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Необходимо самостоятельно подать декларацию 3-НДФЛ и уплатить НДФЛ до 15 июля года, следующего за годом получения дивидендов.
+            НДФЛ с дивидендов удерживается и уплачивается Компанией
           </AlertDescription>
         </Alert>
 

@@ -507,7 +507,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Компания-эмитент не удерживает налог с дивидендов. Вы обязаны самостоятельно уплатить НДФЛ и подать декларацию 3-НДФЛ.
+              НДФЛ с дивидендов удерживается и уплачивается Компанией
             </AlertDescription>
           </Alert>
         </div>
