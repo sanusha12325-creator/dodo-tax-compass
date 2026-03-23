@@ -434,9 +434,9 @@ export default function DividendsFlow() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Текущая стоимость акции (₽)</Label>
-          <Input type="number" placeholder="3800" value={fairValueRub || ""} onChange={e => setFairValueRub(Number(e.target.value))} />
-          <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
+          <Label>Расчетная стоимость акции ($)</Label>
+          <Input type="number" step="0.01" placeholder="38" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+          <p className="text-xs text-muted-foreground">$38 при оценке $228 млн</p>
         </div>
         <div className="space-y-2">
           <Label>Курс USD/RUB</Label>
