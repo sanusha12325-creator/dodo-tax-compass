@@ -88,7 +88,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   
   const [conversionInputs, setConversionInputs] = useState<ConversionInputs>({
     strikePriceUsd: 0.01,
-    fairValueRub: 0,
+    fairValueUsd: 0,
     optionsCount: 0,
     usdRubRate: 100,
   });
