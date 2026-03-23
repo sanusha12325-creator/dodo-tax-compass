@@ -16,7 +16,7 @@ type SaleType = "dp_global" | "russian_company" | "foreign_or_individual";
 
 interface ConversionInputs {
   strikePriceUsd: number;
-  fairValueRub: number;
+  fairValueUsd: number;
   optionsCount: number;
   usdRubRate: number;
 }
@@ -40,7 +40,7 @@ interface DividendInputs {
   // Помощник: стоит ли конвертировать
   checkConversion: boolean;
   strikePriceUsd: number;
-  fairValueRub: number;
+  fairValueUsd: number;
   
 }
 
@@ -88,7 +88,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   
   const [conversionInputs, setConversionInputs] = useState<ConversionInputs>({
     strikePriceUsd: 0.01,
-    fairValueRub: 0,
+    fairValueUsd: 0,
     optionsCount: 0,
     usdRubRate: 100,
   });
@@ -109,7 +109,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     usdRubRate: 100,
     checkConversion: false,
     strikePriceUsd: 0.01,
-    fairValueRub: 0,
+    fairValueUsd: 0,
     
   });
 
@@ -139,7 +139,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   // Conversion calculations
   const calculateConversion = () => {
-    const { strikePriceUsd, fairValueRub, optionsCount, usdRubRate } = conversionInputs;
+    const { strikePriceUsd, fairValueUsd, optionsCount, usdRubRate } = conversionInputs;
     
     // K = Strike price × USD/RUB × Quantity
     const K = strikePriceUsd * usdRubRate * optionsCount;
@@ -147,8 +147,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     // L = Registration fee in USD × USD/RUB
     const L = REGISTRATION_FEE * usdRubRate;
     
-    // M = Fair Value × Quantity × 0.8 (20% discount)
-    const M = fairValueRub * optionsCount * 0.8;
+    // M = Fair Value (USD) × USD/RUB × Quantity × 0.8 (20% discount)
+    const M = fairValueUsd * usdRubRate * optionsCount * 0.8;
     
     // N = M - (K + L)
     const N = M - (K + L);
@@ -223,7 +223,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <div className="text-sm space-y-1 mt-3">
               <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
               <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
-              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueRub)} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
+              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
             </div>
           </div>
           
@@ -458,11 +458,11 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   };
 
   const calculateConversionCosts = () => {
-    const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate } = dividendInputs;
+    const { strikePriceUsd, fairValueUsd, sharesCount, usdRubRate } = dividendInputs;
     const registrationFee = 100; // USD — одинаковая стоимость для всех при выпуске акций
     const K = strikePriceUsd * usdRubRate * sharesCount;
     const L = REGISTRATION_FEE * usdRubRate;
-    const M = fairValueRub * sharesCount * 0.8;
+    const M = fairValueUsd * usdRubRate * sharesCount * 0.8;
     const N = M - (K + L);
     
     let conversionTax = 0;
@@ -553,7 +553,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     const { totalDividendsRub } = calculateDividends();
     const { totalConversionCost, conversionTax, registrationCostRub, registrationFee, K } = calculateConversionCosts();
     
-    if (totalDividendsRub <= 0 || dividendInputs.fairValueRub <= 0) return null;
+    if (totalDividendsRub <= 0 || dividendInputs.fairValueUsd <= 0) return null;
     
     // Чистые дивиденды за выплату (после налога)
     let netDividendsPerPayout = totalDividendsRub;
@@ -760,15 +760,16 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="fairValueRub">Текущая стоимость акции (₽)</Label>
+                      <Label htmlFor="fairValueUsd">Расчетная стоимость акции ($)</Label>
                       <Input
-                        id="fairValueRub"
+                        id="fairValueUsd"
                         type="number"
+                        step="0.01"
                         placeholder="0"
-                        value={conversionInputs.fairValueRub || ""}
-                        onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
+                        value={conversionInputs.fairValueUsd || ""}
+                        onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Текущую цену акции ты можешь узнать у команды финансов или юристов. 3800 рублей — стоимость акции при оценке компании в $228 млн на 01.01.2025</p>
+                      <p className="text-xs text-muted-foreground">Расчетную стоимость акции можно узнать у команды финансов или юристов. $38 — стоимость акции при оценке компании в $228 млн на 01.01.2025</p>
                     </div>
                     
                     <div className="space-y-2">
@@ -910,20 +911,21 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="divFairValue">Стоимость акции (₽)</Label>
+                            <Label htmlFor="divFairValue">Расчетная стоимость акции ($)</Label>
                             <Input
                               id="divFairValue"
                               type="number"
+                              step="0.01"
                               placeholder="0"
-                              value={dividendInputs.fairValueRub || ""}
-                              onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueRub: Number(e.target.value) }))}
+                              value={dividendInputs.fairValueUsd || ""}
+                              onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                             />
                             <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
                           </div>
                         </div>
                         
                         
-                        {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueRub > 0) && (
+                        {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueUsd > 0) && (
                           <div className="pt-2">
                             <h4 className="font-medium mb-3 flex items-center gap-2">
                               <TrendingUp className="w-4 h-4 text-primary" />

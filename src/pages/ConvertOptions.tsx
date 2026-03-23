@@ -38,7 +38,7 @@ export default function ConvertOptions() {
   const [residency, setResidency] = useState<Residency>("russia");
 
   const [strikePriceUsd, setStrikePriceUsd] = useState(0.01);
-  const [fairValueRub, setFairValueRub] = useState(0);
+  const [fairValueUsd, setFairValueUsd] = useState(0);
   const [optionsCount, setOptionsCount] = useState(0);
   const [usdRubRate, setUsdRubRate] = useState(100);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
@@ -140,7 +140,7 @@ export default function ConvertOptions() {
   const renderCalculator = () => {
     const K = strikePriceUsd * usdRubRate * optionsCount;
     const L = REGISTRATION_FEE * usdRubRate;
-    const M = fairValueRub * optionsCount * 0.8;
+    const M = fairValueUsd * usdRubRate * optionsCount * 0.8;
     const N = M - (K + L);
     const actualCostUsd = strikePriceUsd * optionsCount;
     const totalFormalizationUsd = actualCostUsd + REGISTRATION_FEE;
@@ -190,7 +190,7 @@ export default function ConvertOptions() {
               <p className="text-muted-foreground">Формула: N = M − (K + L)</p>
               <p><span className="font-medium">K</span>: {formatCurrency(strikePriceUsd, "USD")} × {usdRubRate} × {optionsCount} = {formatCurrency(K)}</p>
               <p><span className="font-medium">L</span>: {formatCurrency(REGISTRATION_FEE, "USD")} × {usdRubRate} = {formatCurrency(L)}</p>
-              <p><span className="font-medium">M</span>: {formatCurrency(fairValueRub)} × {optionsCount} × 0.8 = {formatCurrency(M)}</p>
+              <p><span className="font-medium">M</span>: {formatCurrency(fairValueUsd, "USD")} × {usdRubRate} × {optionsCount} × 0.8 = {formatCurrency(M)}</p>
             </div>
 
             <Alert>
@@ -297,9 +297,9 @@ export default function ConvertOptions() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Текущая стоимость акции (₽)</Label>
-            <Input type="number" placeholder="3800" value={fairValueRub || ""} onChange={e => setFairValueRub(Number(e.target.value))} />
-            <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн на 01.01.2025</p>
+            <Label>Расчетная стоимость акции ($)</Label>
+            <Input type="number" step="0.01" placeholder="38" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+            <p className="text-xs text-muted-foreground">$38 при оценке $228 млн на 01.01.2025</p>
           </div>
           <div className="space-y-2">
             <Label>Курс USD/RUB</Label>
@@ -312,7 +312,7 @@ export default function ConvertOptions() {
           </div>
         </div>
 
-        {optionsCount > 0 && fairValueRub > 0 && renderResult()}
+        {optionsCount > 0 && fairValueUsd > 0 && renderResult()}
       </div>
     );
   };

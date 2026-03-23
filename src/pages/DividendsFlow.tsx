@@ -47,7 +47,7 @@ export default function DividendsFlow() {
   const [usdRubRate, setUsdRubRate] = useState(100);
   const [planToConvert, setPlanToConvert] = useState<boolean | null>(null);
   const [strikePriceUsd, setStrikePriceUsd] = useState(0.01);
-  const [fairValueRub, setFairValueRub] = useState(0);
+  const [fairValueUsd, setFairValueUsd] = useState(0);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function DividendsFlow() {
   const calcConversionCosts = (count: number) => {
     const K = strikePriceUsd * usdRubRate * count;
     const L = REGISTRATION_FEE * usdRubRate;
-    const M = fairValueRub * count * 0.8;
+    const M = fairValueUsd * usdRubRate * count * 0.8;
     const N = M - (K + L);
     const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
     // "both" = уже акционер (315), "only_options" = новый (515)
@@ -324,9 +324,9 @@ export default function DividendsFlow() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Текущая стоимость акции (₽)</Label>
-            <Input type="number" placeholder="3800" value={fairValueRub || ""} onChange={e => setFairValueRub(Number(e.target.value))} />
-            <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн на 01.01.2025</p>
+            <Label>Расчетная стоимость акции ($)</Label>
+            <Input type="number" step="0.01" placeholder="38" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+            <p className="text-xs text-muted-foreground">$38 при оценке $228 млн на 01.01.2025</p>
           </div>
           <div className="space-y-2">
             <Label>Курс USD/RUB</Label>
@@ -344,7 +344,7 @@ export default function DividendsFlow() {
           </div>
         </div>
 
-        {dividendPerShare > 0 && fairValueRub > 0 && (() => {
+        {dividendPerShare > 0 && fairValueUsd > 0 && (() => {
           const divs = calcDividends(optionsCount);
           const conv = calcConversionCosts(optionsCount);
           const netAfterAll = divs.net - conv.totalCost;
@@ -434,9 +434,9 @@ export default function DividendsFlow() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Текущая стоимость акции (₽)</Label>
-          <Input type="number" placeholder="3800" value={fairValueRub || ""} onChange={e => setFairValueRub(Number(e.target.value))} />
-          <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
+          <Label>Расчетная стоимость акции ($)</Label>
+          <Input type="number" step="0.01" placeholder="38" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+          <p className="text-xs text-muted-foreground">$38 при оценке $228 млн</p>
         </div>
         <div className="space-y-2">
           <Label>Курс USD/RUB</Label>
@@ -448,7 +448,7 @@ export default function DividendsFlow() {
           </div>
         </div>
       </div>
-      <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueRub} className="w-full">
+      <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueUsd} className="w-full">
         Сравнить сценарии <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
     </div>
