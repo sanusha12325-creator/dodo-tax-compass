@@ -536,9 +536,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       <div className="space-y-4">
         <Alert className="border-warning/30 bg-warning/5">
           <AlertTriangle className="h-5 w-5 text-warning" />
-          <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+          <AlertTitle className="text-warning font-semibold">Информация</AlertTitle>
           <AlertDescription className="text-muted-foreground mt-2">
-            Проанализируйте законодательство страны вашего резидентства для определения ставки налога на дивиденды от иностранной компании.
+            Если вы налоговый резидент другой страны, с дивидендов в РФ удерживается налог 15%, а окончательная сумма налога зависит от страны вашего налогового резидентства.
           </AlertDescription>
         </Alert>
         <div className="p-4 rounded-lg bg-muted/30 border">
