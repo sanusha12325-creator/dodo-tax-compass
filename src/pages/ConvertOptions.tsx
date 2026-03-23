@@ -38,7 +38,7 @@ export default function ConvertOptions() {
   const [residency, setResidency] = useState<Residency>("russia");
 
   const [strikePriceUsd, setStrikePriceUsd] = useState(0.01);
-  const [fairValueRub, setFairValueRub] = useState(0);
+  const [fairValueUsd, setFairValueUsd] = useState(0);
   const [optionsCount, setOptionsCount] = useState(0);
   const [usdRubRate, setUsdRubRate] = useState(100);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
