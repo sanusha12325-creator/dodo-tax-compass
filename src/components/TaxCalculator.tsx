@@ -223,7 +223,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <div className="text-sm space-y-1 mt-3">
               <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
               <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
-              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueRub)} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
+              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
             </div>
           </div>
           
