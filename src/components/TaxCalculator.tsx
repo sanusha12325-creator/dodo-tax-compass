@@ -110,7 +110,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     checkConversion: false,
     strikePriceUsd: 0.01,
     fairValueRub: 0,
-    isCurrentShareholder: false,
+    
   });
 
   // Fetch USD/RUB exchange rate
