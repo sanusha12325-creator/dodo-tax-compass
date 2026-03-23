@@ -5,39 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, CheckCircle2, AlertTriangle, Info, Coins, RefreshCw, TrendingUp, ChevronRight } from "lucide-react";
+import { useLanguage } from "@/lib/language";
 
 type OwnershipType = null | "only_shares" | "only_options" | "both";
 type Residency = "russia" | "kazakhstan" | "other";
-
-const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: currency === "USD" ? 2 : 0,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  }).format(value);
-};
-
-const calculateNdfl = (income: number) => {
-  if (income <= 0) return { tax: 0, rate: "0%", breakdown: "Нет дохода" };
-  const threshold = 2_400_000;
-  if (income <= threshold) {
-    const tax = income * 0.13;
-    return { tax, rate: "13%", breakdown: `${formatCurrency(income)} × 13% = ${formatCurrency(tax)}` };
-  }
-  const baseTax = threshold * 0.13;
-  const excessTax = (income - threshold) * 0.15;
-  const totalTax = baseTax + excessTax;
-  return { tax: totalTax, rate: "13% + 15%", breakdown: `${formatCurrency(threshold)} × 13% + ${formatCurrency(income - threshold)} × 15% = ${formatCurrency(totalTax)}` };
-};
 
 const REGISTRATION_FEE = 100;
 
 export default function DividendsFlow() {
   const navigate = useNavigate();
+  const { t, lang } = useLanguage();
   const [step, setStep] = useState(0);
   const [residency, setResidency] = useState<Residency>("russia");
   const [ownership, setOwnership] = useState<OwnershipType>(null);
@@ -50,13 +29,31 @@ export default function DividendsFlow() {
   const [fairValueUsd, setFairValueUsd] = useState(0);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
 
+  const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
+    return new Intl.NumberFormat(lang === "ru" ? "ru-RU" : "en-US", {
+      style: "currency", currency,
+      minimumFractionDigits: currency === "USD" ? 2 : 0,
+      maximumFractionDigits: currency === "USD" ? 2 : 0,
+    }).format(value);
+  };
+
+  const calculateNdfl = (income: number) => {
+    if (income <= 0) return { tax: 0, rate: "0%", breakdown: t("common.noTaxableIncome") };
+    const threshold = 2_400_000;
+    if (income <= threshold) {
+      const tax = income * 0.13;
+      return { tax, rate: "13%", breakdown: `${formatCurrency(income)} × 13% = ${formatCurrency(tax)}` };
+    }
+    const baseTax = threshold * 0.13;
+    const excessTax = (income - threshold) * 0.15;
+    const totalTax = baseTax + excessTax;
+    return { tax: totalTax, rate: "13% + 15%", breakdown: `${formatCurrency(threshold)} × 13% + ${formatCurrency(income - threshold)} × 15% = ${formatCurrency(totalTax)}` };
+  };
+
   useEffect(() => {
     fetch("https://www.cbr-xml-daily.ru/daily_json.js")
       .then(r => r.json())
-      .then(data => {
-        const rate = data.Valute?.USD?.Value;
-        if (rate) setUsdRubRate(Math.round(rate * 100) / 100);
-      })
+      .then(data => { const rate = data.Valute?.USD?.Value; if (rate) setUsdRubRate(Math.round(rate * 100) / 100); })
       .catch(() => {});
   }, []);
 
@@ -64,10 +61,7 @@ export default function DividendsFlow() {
     setIsLoadingRate(true);
     fetch("https://www.cbr-xml-daily.ru/daily_json.js")
       .then(r => r.json())
-      .then(data => {
-        const rate = data.Valute?.USD?.Value;
-        if (rate) setUsdRubRate(Math.round(rate * 100) / 100);
-      })
+      .then(data => { const rate = data.Valute?.USD?.Value; if (rate) setUsdRubRate(Math.round(rate * 100) / 100); })
       .finally(() => setIsLoadingRate(false));
   };
 
@@ -77,8 +71,7 @@ export default function DividendsFlow() {
       const { tax, rate, breakdown } = calculateNdfl(totalRub);
       return { totalRub, tax, rate, breakdown, net: totalRub - tax };
     }
-    // Kazakhstan & Other: no dividend tax from AIFC company
-    return { totalRub, tax: 0, rate: "0%", breakdown: "Налог не взимается", net: totalRub };
+    return { totalRub, tax: 0, rate: "0%", breakdown: lang === "ru" ? "Налог не взимается" : "No tax", net: totalRub };
   };
 
   const calcConversionCosts = (count: number) => {
@@ -87,7 +80,6 @@ export default function DividendsFlow() {
     const M = fairValueUsd * usdRubRate * count * 0.8;
     const N = M - (K + L);
     const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
-    // "both" = уже акционер (315), "only_options" = новый (515)
     const regFee = ownership === "both" ? 315 : 515;
     const regCostRub = regFee * usdRubRate;
     const totalCost = K + regCostRub + conversionTax;
@@ -102,18 +94,16 @@ export default function DividendsFlow() {
     setPlanToConvert(null);
   };
 
-  const taxLabel = residency === "russia" ? "НДФЛ" : residency === "kazakhstan" ? "ИПН" : "Налог";
-
-  // --- SCREENS ---
+  const taxLabel = residency === "russia" ? (lang === "ru" ? "НДФЛ" : "Income tax") : residency === "kazakhstan" ? (lang === "ru" ? "ИПН" : "IIT") : (lang === "ru" ? "Налог" : "Tax");
 
   const renderOwnershipScreen = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-foreground">Что у вас сейчас есть?</h3>
+      <h3 className="text-lg font-semibold text-foreground">{t("div.whatDoYouHave")}</h3>
       <div className="space-y-3">
         {([
-          { value: "only_shares" as const, label: "Только акции", desc: "У меня уже есть акции компании" },
-          { value: "only_options" as const, label: "Только опционы", desc: "У меня есть опционы, но акций нет" },
-          { value: "both" as const, label: "И акции, и опционы", desc: "У меня есть и акции, и опционы" },
+          { value: "only_shares" as const, label: t("div.onlyShares"), desc: t("div.onlySharesDesc") },
+          { value: "only_options" as const, label: t("div.onlyOptions"), desc: t("div.onlyOptionsDesc") },
+          { value: "both" as const, label: t("div.both"), desc: t("div.bothDesc") },
         ]).map(opt => (
           <button
             key={opt.value}
@@ -128,37 +118,36 @@ export default function DividendsFlow() {
     </div>
   );
 
-  // -- Only Shares Flow --
   const renderSharesInput = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Данные по акциям</h3>
+      <h3 className="text-lg font-semibold">{t("div.shareData")}</h3>
       <div className="space-y-3">
         <div className="space-y-2">
-          <Label>Количество акций</Label>
+          <Label>{t("common.sharesCount")}</Label>
           <Input type="number" placeholder="0" value={sharesCount || ""} onChange={e => setSharesCount(Number(e.target.value))} />
         </div>
         <div className="space-y-2">
-          <Label>Дивиденд на акцию (₽)</Label>
+          <Label>{t("common.dividendPerShare")}</Label>
           <Input type="number" step="0.01" placeholder="0" value={dividendPerShare || ""} onChange={e => setDividendPerShare(Number(e.target.value))} />
         </div>
       </div>
       <Button onClick={() => setStep(2)} disabled={!sharesCount || !dividendPerShare} className="w-full">
-        Рассчитать <ChevronRight className="w-4 h-4 ml-1" />
+        {t("common.calculate")} <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
     </div>
   );
 
   const renderResidencySelector = () => (
     <div className="flex items-center gap-3 mb-4">
-      <Label className="text-sm whitespace-nowrap">Резидентство</Label>
+      <Label className="text-sm whitespace-nowrap">{t("common.residency")}</Label>
       <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
         <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="russia">🇷🇺 Россия</SelectItem>
-          <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
-          <SelectItem value="other">🌍 Другая страна</SelectItem>
+          <SelectItem value="russia">{t("common.russia")}</SelectItem>
+          <SelectItem value="kazakhstan">{t("common.kazakhstan")}</SelectItem>
+          <SelectItem value="other">{t("common.other")}</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -171,20 +160,20 @@ export default function DividendsFlow() {
       return (
         <div className="space-y-4">
           {renderResidencySelector()}
-          <h3 className="text-lg font-semibold">Результат</h3>
+          <h3 className="text-lg font-semibold">{t("common.result")}</h3>
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-5 w-5 text-success" />
-            <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
+            <AlertTitle className="text-success font-semibold">{t("tax.dividends.noIpn")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              Для резидентов Казахстана дивиденды от компании МФЦА не облагаются ИПН.
+              {t("div.kazNoIpnDivs")}
             </AlertDescription>
           </Alert>
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-            <p className="text-sm opacity-90 mb-1">Сумма к получению</p>
+            <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
             <p className="text-4xl font-bold">{formatCurrency(net)}</p>
           </div>
           <div className="p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">Дивиденды</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.dividends")}</p>
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
           </div>
         </div>
@@ -195,16 +184,16 @@ export default function DividendsFlow() {
       return (
         <div className="space-y-4">
           {renderResidencySelector()}
-          <h3 className="text-lg font-semibold">Результат</h3>
+          <h3 className="text-lg font-semibold">{t("common.result")}</h3>
           <Alert className="border-warning/30 bg-warning/5">
             <AlertTriangle className="h-5 w-5 text-warning" />
-            <AlertTitle className="text-warning font-semibold">Информация</AlertTitle>
+            <AlertTitle className="text-warning font-semibold">{t("tax.dividends.otherCountryInfo")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              Если вы налоговый резидент другой страны, с дивидендов в РФ удерживается налог 15%, а окончательная сумма налога зависит от страны вашего налогового резидентства.
+              {t("tax.dividends.otherCountryDesc")}
             </AlertDescription>
           </Alert>
           <div className="p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">Сумма дивидендов</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.dividendAmount")}</p>
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
           </div>
         </div>
@@ -215,14 +204,14 @@ export default function DividendsFlow() {
     return (
       <div className="space-y-4">
         {renderResidencySelector()}
-        <h3 className="text-lg font-semibold">Результат</h3>
+        <h3 className="text-lg font-semibold">{t("common.result")}</h3>
         <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-          <p className="text-sm opacity-90 mb-1">Сумма к получению</p>
+          <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
           <p className="text-4xl font-bold">{formatCurrency(net)}</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">Дивиденды до налога</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
           </div>
           <div className="p-4 rounded-lg border bg-destructive/5">
@@ -235,55 +224,54 @@ export default function DividendsFlow() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            НДФЛ с дивидендов удерживается и уплачивается Компанией
+            {t("div.ndflWithheldByCompany")}
           </AlertDescription>
         </Alert>
 
         <div className="p-4 rounded-xl bg-success/10 border border-success/20 space-y-2">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-            <p className="font-medium text-foreground">Вы уже являетесь держателем акций</p>
+            <p className="font-medium text-foreground">{t("div.alreadyShareholder")}</p>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-            <p className="text-sm text-muted-foreground">Дополнительных действий не требуется (при владении на дату закрытия реестра)</p>
+            <p className="text-sm text-muted-foreground">{t("div.noActionNeeded")}</p>
           </div>
         </div>
       </div>
     );
   };
 
-  // -- Only Options Flow --
   const renderOptionsInput = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Данные по опционам</h3>
+      <h3 className="text-lg font-semibold">{t("div.optionData")}</h3>
       <div className="space-y-3">
         <div className="space-y-2">
-          <Label>Сколько опционов прошло вестинг?</Label>
+          <Label>{t("div.vestedOptions")}</Label>
           <Input type="number" placeholder="0" value={optionsCount || ""} onChange={e => setOptionsCount(Number(e.target.value))} />
         </div>
       </div>
       <Button onClick={() => setStep(2)} disabled={!optionsCount} className="w-full">
-        Далее <ChevronRight className="w-4 h-4 ml-1" />
+        {t("common.next")} <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
     </div>
   );
 
   const renderOptionsPlanScreen = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Планируете перевести опционы в акции до 20 апреля 2026?</h3>
+      <h3 className="text-lg font-semibold">{t("div.planToConvert")}</h3>
       <div className="space-y-3">
         <button
           onClick={() => { setPlanToConvert(true); setStep(3); }}
           className="w-full p-4 rounded-xl border-2 text-left hover:border-primary/50 hover:bg-primary/5 transition-all"
         >
-          <p className="font-medium">Да, планирую конвертировать</p>
+          <p className="font-medium">{t("div.yesPlanConvert")}</p>
         </button>
         <button
           onClick={() => { setPlanToConvert(false); setStep(3); }}
           className="w-full p-4 rounded-xl border-2 text-left hover:border-primary/50 hover:bg-primary/5 transition-all"
         >
-          <p className="font-medium">Нет, пока не планирую</p>
+          <p className="font-medium">{t("div.noPlanConvert")}</p>
         </button>
       </div>
     </div>
@@ -295,52 +283,51 @@ export default function DividendsFlow() {
         <div className="space-y-4">
           <Alert className="border-warning/30 bg-warning/5">
             <AlertTriangle className="h-5 w-5 text-warning" />
-            <AlertTitle className="text-warning font-semibold">Дивиденды недоступны</AlertTitle>
+            <AlertTitle className="text-warning font-semibold">{t("div.dividendsUnavailable")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              Чтобы участвовать в выплате дивидендов, необходимо стать держателем акций до 20 апреля 2026 года. Опционы не дают права на получение дивидендов.
+              {t("div.dividendsUnavailableDesc")}
             </AlertDescription>
           </Alert>
           <Button variant="outline" onClick={() => navigate("/convert")} className="w-full">
-            Узнать как перевести опционы в акции <ChevronRight className="w-4 h-4 ml-1" />
+            {t("div.learnConvert")} <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
       );
     }
 
-    // planToConvert === true — show calculation
     return (
       <div className="space-y-4">
         {renderResidencySelector()}
-        <h3 className="text-lg font-semibold">Расчёт при конвертации</h3>
+        <h3 className="text-lg font-semibold">{t("div.calcOnConversion")}</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Дивиденд на акцию (₽)</Label>
+              <Label>{t("common.dividendPerShare")}</Label>
               <Input type="number" step="0.01" placeholder="0" value={dividendPerShare || ""} onChange={e => setDividendPerShare(Number(e.target.value))} />
             </div>
             <div className="space-y-2">
-              <Label>Цена исполнения ($)</Label>
+              <Label>{t("common.strikePrice")}</Label>
               <Input type="number" step="0.01" placeholder="0.01" value={strikePriceUsd || ""} onChange={e => setStrikePriceUsd(Number(e.target.value))} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Расчетная стоимость акции ($)</Label>
+            <Label>{t("common.fairValueUsd")}</Label>
             <Input type="number" step="0.01" placeholder="11.19" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
-            <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
+            <p className="text-xs text-muted-foreground">{t("common.fairValueHint")}</p>
           </div>
           <div className="space-y-2">
-            <Label>Курс USD/RUB</Label>
+            <Label>{t("common.usdRubRate")}</Label>
             <div className="flex gap-2">
               <Input type="number" step="0.01" value={usdRubRate || ""} onChange={e => setUsdRubRate(Number(e.target.value))} />
               <button onClick={fetchRate} disabled={isLoadingRate} className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm shrink-0">
-                <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} /> ЦБ РФ
+                <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} /> {t("common.cbrRate")}
               </button>
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Опционы (прошли вестинг)</Label>
+            <Label>{t("div.vestedOptionsLabel")}</Label>
             <Input type="number" placeholder={String(optionsCount || 0)} value={optionsCount || ""} onChange={e => setOptionsCount(Number(e.target.value))} disabled />
-            <p className="text-xs text-muted-foreground">Значение с предыдущего шага</p>
+            <p className="text-xs text-muted-foreground">{t("div.fromPreviousStep")}</p>
           </div>
         </div>
 
@@ -352,7 +339,7 @@ export default function DividendsFlow() {
           return (
             <div className="space-y-4 pt-4 border-t">
               <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="flex items-center gap-2 mb-1"><Coins className="w-4 h-4 text-primary" /><p className="text-sm text-muted-foreground">Потенциальные дивиденды после конвертации</p></div>
+                <div className="flex items-center gap-2 mb-1"><Coins className="w-4 h-4 text-primary" /><p className="text-sm text-muted-foreground">{t("div.potentialDividends")}</p></div>
                 <p className="text-2xl font-bold">{formatCurrency(divs.totalRub)}</p>
               </div>
 
@@ -360,11 +347,11 @@ export default function DividendsFlow() {
                 {residency === "russia" && (
                   <>
                     <div className="p-4 rounded-lg border bg-muted/20">
-                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} при конвертации</p>
+                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} {t("div.taxOnConversion")}</p>
                       <p className="text-lg font-bold">{formatCurrency(conv.conversionTax)}</p>
                     </div>
                     <div className="p-4 rounded-lg border bg-muted/20">
-                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} на дивиденды</p>
+                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} {t("div.taxOnDividends")}</p>
                       <p className="text-lg font-bold">{formatCurrency(divs.tax)}</p>
                     </div>
                   </>
@@ -373,7 +360,7 @@ export default function DividendsFlow() {
                   <div className="p-4 rounded-lg border bg-success/10 col-span-2">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-success" />
-                      <p className="text-sm text-success font-medium">ИПН не взимается (льгота МФЦА)</p>
+                      <p className="text-sm text-success font-medium">{t("div.noIpnAifc")}</p>
                     </div>
                   </div>
                 )}
@@ -381,24 +368,24 @@ export default function DividendsFlow() {
                   <div className="p-4 rounded-lg border bg-warning/10 col-span-2">
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-warning" />
-                      <p className="text-sm text-warning font-medium">Проверьте налоговое законодательство вашей страны</p>
+                      <p className="text-sm text-warning font-medium">{t("div.checkLocalTax")}</p>
                     </div>
                   </div>
                 )}
               </div>
 
               <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-                <p className="text-sm opacity-90 mb-1">💵 Итог к получению (дивиденды − все расходы)</p>
+                <p className="text-sm opacity-90 mb-1">{t("div.totalToReceive")}</p>
                 <p className="text-4xl font-bold">{formatCurrency(Math.max(0, netAfterAll))}</p>
                 {residency === "other" && (
-                  <p className="text-xs opacity-75 mt-1">Без учёта возможного местного налога</p>
+                  <p className="text-xs opacity-75 mt-1">{t("div.excludingLocalTax")}</p>
                 )}
               </div>
 
               <Alert className="border-warning/30 bg-warning/5">
                 <AlertTriangle className="h-4 w-4 text-warning" />
                 <AlertDescription>
-                  Чтобы участвовать в выплате, необходимо стать держателем акций до <strong>20 апреля 2026 года</strong>.
+                  {t("div.mustBeShareholderBy")} <strong>20 {lang === "ru" ? "апреля" : "April"} 2026</strong>.
                 </AlertDescription>
               </Alert>
             </div>
@@ -408,48 +395,47 @@ export default function DividendsFlow() {
     );
   };
 
-  // -- Both Flow --
   const renderBothInput = () => (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Данные по акциям и опционам</h3>
+      <h3 className="text-lg font-semibold">{t("div.bothData")}</h3>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>Количество акций</Label>
+            <Label>{t("common.sharesCount")}</Label>
             <Input type="number" placeholder="0" value={sharesCount || ""} onChange={e => setSharesCount(Number(e.target.value))} />
           </div>
           <div className="space-y-2">
-            <Label>Опционы (прошли вестинг)</Label>
+            <Label>{t("div.vestedOptionsLabel")}</Label>
             <Input type="number" placeholder="0" value={optionsCount || ""} onChange={e => setOptionsCount(Number(e.target.value))} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>Дивиденд на акцию (₽)</Label>
+            <Label>{t("common.dividendPerShare")}</Label>
             <Input type="number" step="0.01" placeholder="0" value={dividendPerShare || ""} onChange={e => setDividendPerShare(Number(e.target.value))} />
           </div>
           <div className="space-y-2">
-            <Label>Цена исполнения ($)</Label>
+            <Label>{t("common.strikePrice")}</Label>
             <Input type="number" step="0.01" placeholder="0.01" value={strikePriceUsd || ""} onChange={e => setStrikePriceUsd(Number(e.target.value))} />
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Расчетная стоимость акции ($)</Label>
+          <Label>{t("common.fairValueUsd")}</Label>
           <Input type="number" step="0.01" placeholder="11.19" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
-          <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
+          <p className="text-xs text-muted-foreground">{t("common.fairValueHint")}</p>
         </div>
         <div className="space-y-2">
-          <Label>Курс USD/RUB</Label>
+          <Label>{t("common.usdRubRate")}</Label>
           <div className="flex gap-2">
             <Input type="number" step="0.01" value={usdRubRate || ""} onChange={e => setUsdRubRate(Number(e.target.value))} />
             <button onClick={fetchRate} disabled={isLoadingRate} className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm shrink-0">
-              <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} /> ЦБ РФ
+              <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} /> {t("common.cbrRate")}
             </button>
           </div>
         </div>
       </div>
       <Button onClick={() => setStep(2)} disabled={!sharesCount || !optionsCount || !dividendPerShare || !fairValueUsd} className="w-full">
-        Сравнить сценарии <ChevronRight className="w-4 h-4 ml-1" />
+        {t("div.compareScenarios")} <ChevronRight className="w-4 h-4 ml-1" />
       </Button>
     </div>
   );
@@ -465,13 +451,13 @@ export default function DividendsFlow() {
     return (
       <div className="space-y-6">
         {renderResidencySelector()}
-        <h3 className="text-lg font-semibold">Сравнительный расчёт</h3>
+        <h3 className="text-lg font-semibold">{t("div.comparativeCalc")}</h3>
 
         {residency === "kazakhstan" && (
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-4 w-4 text-success" />
             <AlertDescription className="text-sm">
-              Для резидентов Казахстана ИПН не взимается на дивиденды и конвертацию (льгота МФЦА).
+              {t("div.kazNoIpnDivsConv")}
             </AlertDescription>
           </Alert>
         )}
@@ -480,7 +466,7 @@ export default function DividendsFlow() {
           <Alert className="border-warning/30 bg-warning/5">
             <AlertTriangle className="h-4 w-4 text-warning" />
             <AlertDescription className="text-sm">
-              В МФЦА налог не взимается. Проверьте налоговое законодательство вашей страны — возможно, потребуется уплатить местный налог.
+              {t("div.otherNoTaxAifc")}
             </AlertDescription>
           </Alert>
         )}
@@ -489,12 +475,12 @@ export default function DividendsFlow() {
         <div className="p-4 rounded-xl border-2 border-muted space-y-3">
           <h4 className="font-semibold flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted text-xs font-bold">1</span>
-            Без конвертации
+            {t("div.noConversion")}
           </h4>
-          <p className="text-sm text-muted-foreground">Дивиденды только по текущим {sharesCount} акциям</p>
+          <p className="text-sm text-muted-foreground">{t("div.dividendsOnCurrentShares")} {sharesCount} {t("div.sharesWord")}</p>
           <div className={`grid gap-2 ${residency === "russia" ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div className="p-3 rounded-lg bg-muted/30">
-              <p className="text-xs text-muted-foreground">До налога</p>
+              <p className="text-xs text-muted-foreground">{t("div.beforeTax")}</p>
               <p className="font-bold">{formatCurrency(scenario1.totalRub)}</p>
             </div>
             {residency === "russia" && (
@@ -504,7 +490,7 @@ export default function DividendsFlow() {
               </div>
             )}
             <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-xs text-muted-foreground">Итого</p>
+              <p className="text-xs text-muted-foreground">{t("div.total")}</p>
               <p className="font-bold text-success">{formatCurrency(scenario1.net)}</p>
             </div>
           </div>
@@ -514,26 +500,26 @@ export default function DividendsFlow() {
         <div className="p-4 rounded-xl border-2 border-primary/30 bg-primary/5 space-y-3">
           <h4 className="font-semibold flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
-            С конвертацией
+            {t("div.withConversion")}
           </h4>
-          <p className="text-sm text-muted-foreground">Дивиденды по {totalShares} акциям (текущие + конвертированные)</p>
+          <p className="text-sm text-muted-foreground">{t("div.dividendsOnAllShares")} {totalShares} {t("div.sharesCurrentPlusConverted")}</p>
           <div className="grid grid-cols-2 gap-2">
             <div className="p-3 rounded-lg bg-background/50">
-              <p className="text-xs text-muted-foreground">Дивиденды до налога</p>
+              <p className="text-xs text-muted-foreground">{t("common.dividendsBeforeTax")}</p>
               <p className="font-bold">{formatCurrency(scenario2Divs.totalRub)}</p>
             </div>
             {residency === "russia" && (
               <div className="p-3 rounded-lg bg-background/50">
-                <p className="text-xs text-muted-foreground">{taxLabel} на дивиденды</p>
+                <p className="text-xs text-muted-foreground">{taxLabel} {t("div.dividendsTaxLabel")}</p>
                 <p className="font-bold">{formatCurrency(scenario2Divs.tax)}</p>
               </div>
             )}
             <div className="p-3 rounded-lg bg-background/50">
-              <p className="text-xs text-muted-foreground">Расходы на конвертацию</p>
+              <p className="text-xs text-muted-foreground">{t("div.conversionExpenses")}</p>
               <p className="font-bold">{formatCurrency(conv.totalCost)}</p>
             </div>
             <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-xs text-muted-foreground">Итого</p>
+              <p className="text-xs text-muted-foreground">{t("div.total")}</p>
               <p className="font-bold text-success">{formatCurrency(Math.max(0, scenario2Net))}</p>
             </div>
           </div>
@@ -544,15 +530,15 @@ export default function DividendsFlow() {
           <div className="flex items-start gap-3">
             {diff > 0 ? <TrendingUp className="w-5 h-5 text-success shrink-0 mt-0.5" /> : <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />}
             <div className="space-y-2 text-sm">
-              <p><strong>Если конвертировать</strong> — итог {formatCurrency(Math.max(0, scenario2Net))}</p>
-              <p><strong>Если не конвертировать</strong> — итог {formatCurrency(scenario1.net)}</p>
+              <p><strong>{t("div.ifConvert")}</strong> — {t("div.total").toLowerCase()} {formatCurrency(Math.max(0, scenario2Net))}</p>
+              <p><strong>{t("div.ifNotConvert")}</strong> — {t("div.total").toLowerCase()} {formatCurrency(scenario1.net)}</p>
               <p className="pt-1 font-medium">
                 {diff > 0
-                  ? `Конвертация увеличит потенциальный доход на ${formatCurrency(diff)}.`
-                  : `Конвертация уменьшит доход на ${formatCurrency(Math.abs(diff))}.`
+                  ? `${t("div.conversionIncreases")} ${formatCurrency(diff)}.`
+                  : `${t("div.conversionDecreases")} ${formatCurrency(Math.abs(diff))}.`
                 }
               </p>
-              <p className="text-xs text-muted-foreground italic pt-1">Без давления. Только цифры.</p>
+              <p className="text-xs text-muted-foreground italic pt-1">{t("div.noPressure")}</p>
             </div>
           </div>
         </div>
@@ -561,7 +547,7 @@ export default function DividendsFlow() {
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              Расчёт упрощённый: налог на дивиденды и налог при конвертации рассчитаны раздельно. При совмещении этих доходов в одном году реальная ставка может быть выше из-за прогрессивной шкалы НДФЛ (13% до 2,4 млн ₽, 15% сверх).
+              {t("div.simplifiedCalcDisclaimer")}
             </AlertDescription>
           </Alert>
         )}
@@ -569,26 +555,21 @@ export default function DividendsFlow() {
     );
   };
 
-  // --- RENDER FLOW ---
   const renderCurrentStep = () => {
     if (step === 0) return renderOwnershipScreen();
-
     if (ownership === "only_shares") {
       if (step === 1) return renderSharesInput();
       if (step === 2) return renderSharesResult();
     }
-
     if (ownership === "only_options") {
       if (step === 1) return renderOptionsInput();
       if (step === 2) return renderOptionsPlanScreen();
       if (step === 3) return renderOptionsCalculation();
     }
-
     if (ownership === "both") {
       if (step === 1) return renderBothInput();
       if (step === 2) return renderBothResult();
     }
-
     return null;
   };
 
@@ -602,13 +583,11 @@ export default function DividendsFlow() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Получить дивиденды 2026</h1>
-            <p className="text-sm text-muted-foreground">Узнайте, получите ли вы дивиденды и сколько</p>
+            <h1 className="text-xl font-bold text-foreground">{t("div.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("div.subtitle")}</p>
           </div>
         </div>
 
-
-        {/* Progress */}
         {ownership && (
           <div className="flex gap-1">
             {Array.from({ length: ownership === "both" ? 3 : ownership === "only_options" ? 4 : 3 }).map((_, i) => (
@@ -626,7 +605,7 @@ export default function DividendsFlow() {
         {step > 0 && (
           <div className="flex justify-center">
             <Button variant="ghost" size="sm" onClick={reset} className="text-muted-foreground">
-              Начать заново
+              {t("common.startOver")}
             </Button>
           </div>
         )}

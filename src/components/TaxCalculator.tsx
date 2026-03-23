@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calculator, Gift, ArrowRightLeft, Banknote, Info, CheckCircle2, AlertTriangle, RefreshCw, FileText, ExternalLink, ChevronDown, TrendingUp, Coins } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useLanguage } from "@/lib/language";
 
 type Residency = "russia" | "kazakhstan" | "other";
 type Operation = "options" | "conversion" | "sale" | "dividends";
@@ -37,51 +38,41 @@ interface DividendInputs {
   dividendPerShareRub: number;
   sharesCount: number;
   usdRubRate: number;
-  // Помощник: стоит ли конвертировать
   checkConversion: boolean;
   strikePriceUsd: number;
   fairValueUsd: number;
-  
 }
 
-const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: currency === "USD" ? 2 : 0,
-    maximumFractionDigits: currency === "USD" ? 2 : 0,
-  }).format(value);
-};
-
-const calculateNdfl = (income: number): { tax: number; rate: string; breakdown: string } => {
-  if (income <= 0) {
-    return { tax: 0, rate: "0%", breakdown: "Нет налогооблагаемого дохода" };
-  }
-  
-  const threshold = 2_400_000;
-  
-  if (income <= threshold) {
-    const tax = income * 0.13;
-    return { 
-      tax, 
-      rate: "13%", 
-      breakdown: `${formatCurrency(income)} × 13% = ${formatCurrency(tax)}` 
-    };
-  } else {
-    const baseTax = threshold * 0.13;
-    const excessTax = (income - threshold) * 0.15;
-    const totalTax = baseTax + excessTax;
-    return { 
-      tax: totalTax, 
-      rate: "13% + 15%", 
-      breakdown: `${formatCurrency(threshold)} × 13% + ${formatCurrency(income - threshold)} × 15% = ${formatCurrency(totalTax)}` 
-    };
-  }
-};
-
-const REGISTRATION_FEE = 100; // USD - обязательный платёж
+const REGISTRATION_FEE = 100;
 
 export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boolean }) {
+  const { t, lang } = useLanguage();
+
+  const formatCurrency = (value: number, currency: "RUB" | "USD" = "RUB"): string => {
+    return new Intl.NumberFormat(lang === "ru" ? "ru-RU" : "en-US", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: currency === "USD" ? 2 : 0,
+      maximumFractionDigits: currency === "USD" ? 2 : 0,
+    }).format(value);
+  };
+
+  const calculateNdfl = (income: number): { tax: number; rate: string; breakdown: string } => {
+    if (income <= 0) {
+      return { tax: 0, rate: "0%", breakdown: t("common.noTaxableIncome") };
+    }
+    const threshold = 2_400_000;
+    if (income <= threshold) {
+      const tax = income * 0.13;
+      return { tax, rate: "13%", breakdown: `${formatCurrency(income)} × 13% = ${formatCurrency(tax)}` };
+    } else {
+      const baseTax = threshold * 0.13;
+      const excessTax = (income - threshold) * 0.15;
+      const totalTax = baseTax + excessTax;
+      return { tax: totalTax, rate: "13% + 15%", breakdown: `${formatCurrency(threshold)} × 13% + ${formatCurrency(income - threshold)} × 15% = ${formatCurrency(totalTax)}` };
+    }
+  };
+
   const [residency, setResidency] = useState<Residency>("russia");
   const [operation, setOperation] = useState<Operation>("options");
   const [isLoadingRate, setIsLoadingRate] = useState(false);
@@ -110,127 +101,120 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     checkConversion: false,
     strikePriceUsd: 0.01,
     fairValueUsd: 0,
-    
   });
 
-  // Fetch USD/RUB exchange rate
-  const fetchExchangeRate = async () => {
-    setIsLoadingRate(true);
-    try {
-      const response = await fetch("https://www.cbr-xml-daily.ru/daily_json.js");
-      const data = await response.json();
-      const rate = data.Valute?.USD?.Value;
-      if (rate) {
-        const roundedRate = Math.round(rate * 100) / 100;
-        setConversionInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
-        setSaleInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
-        setDividendInputs(prev => ({ ...prev, usdRubRate: roundedRate }));
-      }
-    } catch (error) {
-      console.error("Failed to fetch exchange rate:", error);
-    } finally {
-      setIsLoadingRate(false);
-    }
-  };
-
   useEffect(() => {
-    fetchExchangeRate();
+    fetch("https://www.cbr-xml-daily.ru/daily_json.js")
+      .then(r => r.json())
+      .then(data => {
+        const rate = data.Valute?.USD?.Value;
+        if (rate) {
+          const rounded = Math.round(rate * 100) / 100;
+          setConversionInputs(prev => ({ ...prev, usdRubRate: rounded }));
+          setSaleInputs(prev => ({ ...prev, usdRubRate: rounded }));
+          setDividendInputs(prev => ({ ...prev, usdRubRate: rounded }));
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const fetchExchangeRate = () => {
+    setIsLoadingRate(true);
+    fetch("https://www.cbr-xml-daily.ru/daily_json.js")
+      .then(r => r.json())
+      .then(data => {
+        const rate = data.Valute?.USD?.Value;
+        if (rate) {
+          const rounded = Math.round(rate * 100) / 100;
+          setConversionInputs(prev => ({ ...prev, usdRubRate: rounded }));
+          setSaleInputs(prev => ({ ...prev, usdRubRate: rounded }));
+          setDividendInputs(prev => ({ ...prev, usdRubRate: rounded }));
+        }
+      })
+      .finally(() => setIsLoadingRate(false));
+  };
 
   // Conversion calculations
   const calculateConversion = () => {
     const { strikePriceUsd, fairValueUsd, optionsCount, usdRubRate } = conversionInputs;
-    
-    // K = Strike price × USD/RUB × Quantity
     const K = strikePriceUsd * usdRubRate * optionsCount;
-    
-    // L = Registration fee in USD × USD/RUB
     const L = REGISTRATION_FEE * usdRubRate;
-    
-    // M = Fair Value (USD) × USD/RUB × Quantity × 0.8 (20% discount)
     const M = fairValueUsd * usdRubRate * optionsCount * 0.8;
-    
-    // N = M - (K + L)
     const N = M - (K + L);
-    
     return { K, L, M, N };
   };
 
   const renderOptionsResult = () => (
     <Alert className="border-success/30 bg-success/5">
       <CheckCircle2 className="h-5 w-5 text-success" />
-      <AlertTitle className="text-success font-semibold">Налог не взимается</AlertTitle>
+      <AlertTitle className="text-success font-semibold">{t("tax.options.noTax")}</AlertTitle>
       <AlertDescription className="text-muted-foreground mt-2">
-        При получении опционов вы получаете лишь право купить акции в будущем, но не получаете доход в момент выдачи опциона. Налогооблагаемая база отсутствует.
+        {t("tax.options.noTaxDesc")}
       </AlertDescription>
     </Alert>
   );
 
   const renderConversionResult = () => {
     const { K, L, M, N } = calculateConversion();
-    
-    // Расходы на оформление в USD и RUB
     const actualCostUsd = conversionInputs.strikePriceUsd * conversionInputs.optionsCount;
     const totalFormalizationUsd = actualCostUsd + REGISTRATION_FEE;
     const totalFormalizationRub = K + L;
     
     if (residency === "russia") {
       const { tax, rate, breakdown } = calculateNdfl(N);
-      const totalExpenses = tax + L + K; // НДФЛ + регистрация + фактическая стоимость
+      const totalExpenses = tax + L + K;
       const netShareValue = M - totalExpenses;
       
       return (
         <div className="space-y-4">
-          {/* Расходы на оформление + регистрация */}
           <div className="p-4 rounded-lg border-2 border-muted bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">Расходы на исполнение опциона и регистрацию прав на акции</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("tax.conversion.executionAndRegistration")}</p>
             <div className="flex items-baseline gap-2">
               <p className="text-2xl font-bold text-foreground">{formatCurrency(totalFormalizationUsd, "USD")}</p>
               <p className="text-lg text-muted-foreground">= {formatCurrency(totalFormalizationRub)}</p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Фактическая стоимость {formatCurrency(actualCostUsd, "USD")} + регистрация {formatCurrency(REGISTRATION_FEE, "USD")}
+              {t("tax.conversion.costPlusReg")} {formatCurrency(actualCostUsd, "USD")} + {t("tax.conversion.registration")} {formatCurrency(REGISTRATION_FEE, "USD")}
             </p>
           </div>
           
-          {/* НДФЛ - яркий блок */}
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-            <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
+            <p className="text-sm opacity-90 mb-1">{t("tax.conversion.ndflToPay")} ({rate})</p>
             <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
-            <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход (N)</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.taxableIncome")} (N)</p>
             <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, N))}</p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <p className="text-sm text-muted-foreground mb-1">Общие расходы</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.totalExpenses")}</p>
               <p className="text-lg font-semibold">{formatCurrency(totalExpenses)}</p>
-              <p className="text-xs text-muted-foreground">НДФЛ + регистрация + стоимость акций</p>
+              <p className="text-xs text-muted-foreground">{t("tax.conversion.ndflPlusTaxRate")}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-sm text-muted-foreground mb-1">Чистая стоимость акций</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.netShareValue")}</p>
               <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netShareValue))}</p>
-              <p className="text-xs text-muted-foreground">M − расходы</p>
+              <p className="text-xs text-muted-foreground">{t("common.MminusExpenses")}</p>
             </div>
           </div>
           
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-            <p className="text-sm text-muted-foreground">Формула расчёта: N = M − (K + L)</p>
+            <p className="text-sm text-muted-foreground">{t("common.formula")}</p>
             <div className="text-sm space-y-1 mt-3">
-              <p><span className="font-medium">K</span> (Фактическая стоимость): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
-              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
-              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(conversionInputs.fairValueUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
+              <p><span className="font-medium">K</span> ({t("common.actualCost")}): {formatCurrency(conversionInputs.strikePriceUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} = <span className="font-semibold">{formatCurrency(K)}</span></p>
+              <p><span className="font-medium">L</span> ({t("common.registrationExpenses")}): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">M</span> ({t("common.marketValueMinus20")}): {formatCurrency(conversionInputs.fairValueUsd, "USD")} × {conversionInputs.usdRubRate} × {conversionInputs.optionsCount} × 0.8 = <span className="font-semibold">{formatCurrency(M)}</span></p>
             </div>
           </div>
           
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              НДФЛ уплачивается самостоятельно. Компания не является налоговым агентом при конвертации опционов.
+              {t("tax.conversion.ndflSelfPay")}
             </AlertDescription>
           </Alert>
         </div>
@@ -244,27 +228,27 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         <div className="space-y-4">
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-5 w-5 text-success" />
-            <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
+            <AlertTitle className="text-success font-semibold">{t("tax.conversion.noIpn")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              Для резидентов Казахстана такой доход не облагается индивидуальным подоходным налогом.
+              {t("tax.conversion.noIpnDesc")}
             </AlertDescription>
           </Alert>
           
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
             <div className="text-sm space-y-1">
-              <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
-              <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(M)}</p>
+              <p><span className="font-medium">L</span> ({t("common.registrationExpenses")}): {formatCurrency(REGISTRATION_FEE, "USD")} × {conversionInputs.usdRubRate} = <span className="font-semibold">{formatCurrency(L)}</span></p>
+              <p><span className="font-medium">M</span> ({t("common.marketValueMinus20")}): {formatCurrency(M)}</p>
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <p className="text-sm text-muted-foreground mb-1">Расходы</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
               <p className="text-lg font-semibold">{formatCurrency(L)}</p>
-              <p className="text-xs text-muted-foreground">Только регистрация</p>
+              <p className="text-xs text-muted-foreground">{t("common.onlyRegistration")}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-sm text-muted-foreground mb-1">Чистая стоимость акций</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.netShareValue")}</p>
               <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netShareValue))}</p>
             </div>
           </div>
@@ -279,22 +263,22 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       <div className="space-y-4">
         <Alert className="border-warning/30 bg-warning/5">
           <AlertTriangle className="h-5 w-5 text-warning" />
-          <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+          <AlertTitle className="text-warning font-semibold">{t("tax.conversion.analysisNeeded")}</AlertTitle>
           <AlertDescription className="text-muted-foreground mt-2">
-            В Казахстане ИПН не взимается. Вам необходимо проанализировать законодательство страны вашего резидентства, чтобы понять, облагается ли местным налогом доход в виде экономии при покупке акций по номинальной цене вместо рыночной.
+            {t("tax.conversion.analysisDesc")}
           </AlertDescription>
         </Alert>
         
         <div className="p-4 rounded-lg bg-muted/50 space-y-2">
           <div className="text-sm space-y-1">
-            <p><span className="font-medium">L</span> (Расходы на регистрацию): {formatCurrency(L)}</p>
-            <p><span className="font-medium">M</span> (Рыночная стоимость −20%): {formatCurrency(M)}</p>
-            <p><span className="font-medium">N</span> (Потенциальная налоговая база): {formatCurrency(Math.max(0, N))}</p>
+            <p><span className="font-medium">L</span> ({t("common.registrationExpenses")}): {formatCurrency(L)}</p>
+            <p><span className="font-medium">M</span> ({t("common.marketValueMinus20")}): {formatCurrency(M)}</p>
+            <p><span className="font-medium">N</span> ({t("common.potentialTaxBase")}): {formatCurrency(Math.max(0, N))}</p>
           </div>
         </div>
         
         <div className="p-4 rounded-lg bg-muted/30 border">
-          <p className="text-sm text-muted-foreground mb-1">Стоимость акций (без учёта местного налога)</p>
+          <p className="text-sm text-muted-foreground mb-1">{t("tax.conversion.shareValueNoLocalTax")}</p>
           <p className="text-lg font-semibold">{formatCurrency(Math.max(0, netShareValue))}</p>
         </div>
       </div>
@@ -303,20 +287,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   // Sale registration fees
   const SALE_REGISTRATION_FEES = {
-    new_shareholder: 300, // USD
-    current_shareholder: 150, // USD
+    new_shareholder: 300,
+    current_shareholder: 150,
   };
 
-  // Sale calculations
   const calculateSale = () => {
     const { acquisitionCost, salePrice, buyerType, usdRubRate } = saleInputs;
-    
-    // Стоимость регистрации в рублях
     const registrationFeeRub = SALE_REGISTRATION_FEES[buyerType] * usdRubRate;
-    
-    // Доход = Стоимость продажи - Стоимость приобретения
     const income = salePrice - acquisitionCost;
-    
     return { acquisitionCost, salePrice, income, registrationFeeRub, registrationFeeUsd: SALE_REGISTRATION_FEES[buyerType] };
   };
 
@@ -325,7 +303,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     
     if (residency === "russia") {
       const { tax: rawTax, rate, breakdown } = calculateNdfl(income);
-      // Уменьшаем налог к уплате на ранее оплаченный НДФЛ при конвертации
       const conversionCredit = saleInputs.hasConvertedOptions ? saleInputs.paidConversionTax : 0;
       const tax = Math.max(0, rawTax - conversionCredit);
       
@@ -334,14 +311,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       
       switch (saleInputs.saleType) {
         case "dp_global":
-          paymentMethod = "Вы должны самостоятельно уплатить НДФЛ.";
+          paymentMethod = t("tax.sale.selfPayNdfl");
           break;
         case "russian_company":
-          paymentMethod = "Российская компания-покупатель перечислит НДФЛ за вас.";
+          paymentMethod = t("tax.sale.companyPaysNdfl");
           selfPay = false;
           break;
         case "foreign_or_individual":
-          paymentMethod = "Вы должны самостоятельно уплатить НДФЛ.";
+          paymentMethod = t("tax.sale.selfPayNdfl");
           break;
       }
       
@@ -350,24 +327,23 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       
       return (
         <div className="space-y-4">
-          {/* НДФЛ - первый и самый яркий блок */}
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-            <p className="text-sm opacity-90 mb-1">НДФЛ к уплате ({rate})</p>
+            <p className="text-sm opacity-90 mb-1">{t("tax.conversion.ndflToPay")} ({rate})</p>
             <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
             {conversionCredit > 0 && (
-              <p className="text-xs opacity-75 mt-1">С учётом зачёта ранее уплаченного НДФЛ</p>
+              <p className="text-xs opacity-75 mt-1">{t("tax.sale.withConversionCredit")}</p>
             )}
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
-            <p className="text-sm text-muted-foreground mb-1">Налогооблагаемый доход</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.taxableIncome")}</p>
             <p className="text-2xl font-bold text-foreground">{formatCurrency(Math.max(0, income))}</p>
             {conversionCredit > 0 && (
               <div className="mt-3 pt-3 border-t border-primary/10">
-                <p className="text-xs text-muted-foreground mb-1">Зачёт ранее уплаченного НДФЛ:</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("tax.sale.conversionCreditLabel")}</p>
                 <p className="text-sm text-foreground">
-                  <span className="text-muted-foreground">НДФЛ с дохода</span> {formatCurrency(rawTax)} − <span className="text-muted-foreground">Уплаченный НДФЛ при конвертации</span> {formatCurrency(conversionCredit)} = <span className="font-semibold">{formatCurrency(tax)}</span>
+                  <span className="text-muted-foreground">{t("tax.sale.taxOnIncome")}</span> {formatCurrency(rawTax)} − <span className="text-muted-foreground">{t("tax.sale.paidOnConversion")}</span> {formatCurrency(conversionCredit)} = <span className="font-semibold">{formatCurrency(tax)}</span>
                 </p>
               </div>
             )}
@@ -375,14 +351,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <p className="text-sm text-muted-foreground mb-1">Стоимость регистрации</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.registrationCost")}</p>
               <p className="text-lg font-semibold">{formatCurrency(registrationFeeRub)}</p>
               <p className="text-xs text-muted-foreground">{formatCurrency(registrationFeeUsd, "USD")} × {saleInputs.usdRubRate}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.netProfit")}</p>
               <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netProfit))}</p>
-              <p className="text-xs text-muted-foreground">После НДФЛ и регистрации</p>
+              <p className="text-xs text-muted-foreground">{t("tax.sale.afterTaxAndReg")}</p>
             </div>
           </div>
           
@@ -390,7 +366,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             {selfPay ? <AlertTriangle className="h-4 w-4 text-warning" /> : <CheckCircle2 className="h-4 w-4 text-success" />}
             <AlertDescription>{paymentMethod}</AlertDescription>
           </Alert>
-          
         </div>
       );
     }
@@ -402,20 +377,20 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         <div className="space-y-4">
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-5 w-5 text-success" />
-            <AlertTitle className="text-success font-semibold">ИПН не взимается до 2066 года</AlertTitle>
+            <AlertTitle className="text-success font-semibold">{t("tax.sale.noIpnUntil2066")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              Для резидентов Казахстана действует льгота МФЦА. ИПН не взимается независимо от срока владения акциями.
+              {t("tax.sale.noIpnUntil2066Desc")}
             </AlertDescription>
           </Alert>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
-              <p className="text-sm text-muted-foreground mb-1">Стоимость регистрации</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.registrationCost")}</p>
               <p className="text-lg font-semibold">{formatCurrency(registrationFeeRub)}</p>
               <p className="text-xs text-muted-foreground">{formatCurrency(registrationFeeUsd, "USD")} × {saleInputs.usdRubRate}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-sm text-muted-foreground mb-1">Чистая прибыль</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.netProfit")}</p>
               <p className="text-lg font-semibold text-success">{formatCurrency(Math.max(0, netProfit))}</p>
             </div>
           </div>
@@ -429,20 +404,20 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       <div className="space-y-4">
         <Alert className="border-warning/30 bg-warning/5">
           <AlertTriangle className="h-5 w-5 text-warning" />
-          <AlertTitle className="text-warning font-semibold">Требуется анализ</AlertTitle>
+          <AlertTitle className="text-warning font-semibold">{t("tax.sale.analysisNeeded")}</AlertTitle>
           <AlertDescription className="text-muted-foreground mt-2">
-            В Казахстане ИПН не взимается до 2066 года благодаря льготе МФЦА. Вам необходимо проанализировать законодательство страны вашего резидентства, чтобы понять, облагается ли местным налогом доход от продажи акций.
+            {t("tax.sale.analysisDesc")}
           </AlertDescription>
         </Alert>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-muted/30 border">
-            <p className="text-sm text-muted-foreground mb-1">Стоимость регистрации</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.registrationCost")}</p>
             <p className="text-lg font-semibold">{formatCurrency(registrationFeeRub)}</p>
             <p className="text-xs text-muted-foreground">{formatCurrency(registrationFeeUsd, "USD")} × {saleInputs.usdRubRate}</p>
           </div>
           <div className="p-4 rounded-lg bg-muted/30 border">
-            <p className="text-sm text-muted-foreground mb-1">Прибыль (без учёта местного налога)</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("tax.sale.profitNoLocalTax")}</p>
             <p className="text-lg font-semibold">{formatCurrency(Math.max(0, netProfit))}</p>
           </div>
         </div>
@@ -459,7 +434,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   const calculateConversionCosts = () => {
     const { strikePriceUsd, fairValueUsd, sharesCount, usdRubRate } = dividendInputs;
-    const registrationFee = 100; // USD — одинаковая стоимость для всех при выпуске акций
+    const registrationFee = 100;
     const K = strikePriceUsd * usdRubRate * sharesCount;
     const L = REGISTRATION_FEE * usdRubRate;
     const M = fairValueUsd * usdRubRate * sharesCount * 0.8;
@@ -488,18 +463,18 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       return (
         <div className="space-y-4">
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-            <p className="text-sm opacity-90 mb-1">НДФЛ с дивидендов ({rate})</p>
+            <p className="text-sm opacity-90 mb-1">{t("tax.dividends.ndflOnDividends")} ({rate})</p>
             <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
-              <p className="text-sm text-muted-foreground mb-1">Дивиденды до налога</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
               <p className="text-xl font-bold text-foreground">{formatCurrency(totalDividendsRub)}</p>
             </div>
             <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
+              <p className="text-sm text-muted-foreground mb-1">{t("common.netDividends")}</p>
               <p className="text-xl font-bold text-success">{formatCurrency(netDividends)}</p>
             </div>
           </div>
@@ -507,7 +482,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              НДФЛ с дивидендов удерживается и уплачивается Компанией
+              {t("tax.dividends.ndflWithheldByCompany")}
             </AlertDescription>
           </Alert>
         </div>
@@ -519,13 +494,13 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         <div className="space-y-4">
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-5 w-5 text-success" />
-            <AlertTitle className="text-success font-semibold">ИПН не взимается</AlertTitle>
+            <AlertTitle className="text-success font-semibold">{t("tax.dividends.noIpn")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              Для резидентов Казахстана дивиденды от компании МФЦА не облагаются ИПН.
+              {t("tax.dividends.noIpnDesc")}
             </AlertDescription>
           </Alert>
           <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-            <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.netDividends")}</p>
             <p className="text-xl font-bold text-success">{formatCurrency(totalDividendsRub)}</p>
           </div>
         </div>
@@ -536,13 +511,13 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
       <div className="space-y-4">
         <Alert className="border-warning/30 bg-warning/5">
           <AlertTriangle className="h-5 w-5 text-warning" />
-          <AlertTitle className="text-warning font-semibold">Информация</AlertTitle>
+          <AlertTitle className="text-warning font-semibold">{t("tax.dividends.otherCountryInfo")}</AlertTitle>
           <AlertDescription className="text-muted-foreground mt-2">
-            Если вы налоговый резидент другой страны, с дивидендов в РФ удерживается налог 15%, а окончательная сумма налога зависит от страны вашего налогового резидентства.
+            {t("tax.dividends.otherCountryDesc")}
           </AlertDescription>
         </Alert>
         <div className="p-4 rounded-lg bg-muted/30 border">
-          <p className="text-sm text-muted-foreground mb-1">Сумма дивидендов</p>
+          <p className="text-sm text-muted-foreground mb-1">{t("common.dividendAmount")}</p>
           <p className="text-xl font-bold">{formatCurrency(totalDividendsRub)}</p>
         </div>
       </div>
@@ -555,7 +530,6 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     
     if (totalDividendsRub <= 0 || dividendInputs.fairValueUsd <= 0) return null;
     
-    // Чистые дивиденды за выплату (после налога)
     let netDividendsPerPayout = totalDividendsRub;
     if (residency === "russia") {
       netDividendsPerPayout = totalDividendsRub - calculateNdfl(totalDividendsRub).tax;
@@ -571,8 +545,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             {isProfitable ? <CheckCircle2 className="w-5 h-5 text-success" /> : <AlertTriangle className="w-5 h-5 text-warning" />}
             <p className="font-semibold text-foreground">
               {isProfitable 
-                ? 'Конвертация окупится с первой выплаты дивидендов!' 
-                : `Конвертация окупится за ${paybackPayouts === Infinity ? '∞' : paybackPayouts} выплат${paybackPayouts > 1 && paybackPayouts < 5 ? 'ы' : ''} дивидендов`
+                ? t("tax.dividends.paysOffFirst")
+                : `${t("tax.dividends.paysOffIn")} ${paybackPayouts === Infinity ? '∞' : paybackPayouts} ${t("tax.dividends.payouts")}`
               }
             </p>
           </div>
@@ -580,18 +554,18 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-muted/30 border">
-            <p className="text-sm text-muted-foreground mb-1">Расходы на конвертацию</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("tax.dividends.conversionCosts")}</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(totalConversionCost)}</p>
             <div className="text-xs text-muted-foreground mt-2 space-y-0.5">
-              <p>Стоимость акций: {formatCurrency(K)}</p>
-              <p>Регистрация: {formatCurrency(registrationCostRub)} ({formatCurrency(registrationFee, "USD")})</p>
-              {residency === "russia" && conversionTax > 0 && <p>НДФЛ при конвертации: {formatCurrency(conversionTax)}</p>}
+              <p>{t("tax.dividends.shareCost")}: {formatCurrency(K)}</p>
+              <p>{t("tax.dividends.regCost")}: {formatCurrency(registrationCostRub)} ({formatCurrency(registrationFee, "USD")})</p>
+              {residency === "russia" && conversionTax > 0 && <p>{t("tax.dividends.ndflOnConversion")}: {formatCurrency(conversionTax)}</p>}
             </div>
           </div>
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="text-sm text-muted-foreground mb-1">Чистые дивиденды за выплату</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("tax.dividends.netDividendsPerPayout")}</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(netDividendsPerPayout)}</p>
-            <p className="text-xs text-muted-foreground mt-2">После вычета налога</p>
+            <p className="text-xs text-muted-foreground mt-2">{t("tax.dividends.afterTax")}</p>
           </div>
         </div>
         
@@ -599,13 +573,18 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              Расчёт упрощённый: налог на дивиденды и налог при конвертации рассчитаны раздельно. При совмещении доходов в одном году реальная ставка может быть выше из-за прогрессивной шкалы НДФЛ.
+              {t("tax.dividends.simplifiedCalc")}
             </AlertDescription>
           </Alert>
         )}
       </div>
     );
   };
+
+  const steps = [
+    t("tax.step1"), t("tax.step2"), t("tax.step3"), t("tax.step4"),
+    t("tax.step5"), t("tax.step6"), t("tax.step7"), t("tax.step8"), t("tax.step9"),
+  ];
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -615,20 +594,19 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-soft mb-4">
               <Calculator className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">Калькулятор НДФЛ</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("tax.calcTitle")}</h1>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Расчёт налогов при операциях с опционами и акциями DP Global Group Ltd. после редомициляции в МФЦА Казахстана
+              {t("tax.calcSubtitle")}
             </p>
           </header>
         )}
 
-        {/* Как стать акционером — компактная ссылка */}
         {!hideHeader && (
         <Collapsible>
           <CollapsibleTrigger className="w-full flex items-center justify-between p-4 rounded-lg border bg-card text-card-foreground shadow-sm hover:bg-muted/50 transition-colors group">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-primary" />
-              <span className="font-medium text-sm">Как стать акционером?</span>
+              <span className="font-medium text-sm">{t("tax.howToBecomeShareholderTitle")}</span>
             </div>
             <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
@@ -636,7 +614,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <div className="mt-2 p-4 rounded-lg border bg-card space-y-4">
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm text-foreground">
-                  Если ты хочешь реализовать право на акции, заполни форму:
+                  {t("tax.howToBecomeShareholderIntro")}
                 </p>
                 <a 
                   href="https://pyrus.com/form/1437842" 
@@ -644,22 +622,19 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
                 >
-                  Заполнить форму <ExternalLink className="w-4 h-4" />
+                  {t("tax.fillForm")} <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
 
               <div className="space-y-3 text-sm">
-                <p className="font-medium text-foreground">Пошаговый процесс:</p>
+                <p className="font-medium text-foreground">{t("tax.stepByStep")}</p>
                 <ol className="space-y-2 text-muted-foreground list-none">
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">1</span><span>Ты заявляешь о намерении выкупить (оформить) опционы, заполняешь форму.</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">2</span><span>Происходит подсчёт завестившихся опционов. Мы сообщим о количестве (1–3 дня).</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">3</span><span>Юристы составляют решение о выпуске акций и договор, направляют на подпись через DocuSign (5–7 дней).</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">4</span><span>После подписания ты направляешь сканы паспортов (общегражданский + загран) и резюме. <em>Для новых акционеров, для действующих не применимо.</em></span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">5</span><span>Юристы направляют документы для KYC регистратору (1–3 дня).</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">6</span><span>Выставляется счёт за регистрацию и KYC: <strong>$100</strong> для новых и действующих акционеров.</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">7</span><span>Счёт на оплату номинальной стоимости акций: <strong>$0,01/акция</strong>. После выставления нужно оплатить.</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">8</span><span>Юристы направляют акционерное соглашение (3–5 дней с момента оплаты).</span></li>
-                  <li className="flex gap-2"><span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">9</span><span>Регистратор оформляет акции и вносит изменения в корпоративный реестр.</span></li>
+                  {steps.map((s, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0 mt-0.5">{i + 1}</span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
                 </ol>
               </div>
             </div>
@@ -669,8 +644,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-lg">Налоговое резидентство</CardTitle>
-            <CardDescription>Выберите страну вашего налогового резидентства</CardDescription>
+            <CardTitle className="text-lg">{t("common.taxResidency")}</CardTitle>
+            <CardDescription>{t("common.selectResidency")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
@@ -678,9 +653,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="russia">🇷🇺 Россия</SelectItem>
-                <SelectItem value="kazakhstan">🇰🇿 Казахстан</SelectItem>
-                <SelectItem value="other">🌍 Другая страна</SelectItem>
+                <SelectItem value="russia">{t("common.russia")}</SelectItem>
+                <SelectItem value="kazakhstan">{t("common.kazakhstan")}</SelectItem>
+                <SelectItem value="other">{t("common.other")}</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -688,35 +663,35 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-lg">Тип операции</CardTitle>
+            <CardTitle className="text-lg">{t("tax.operationType")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs value={operation} onValueChange={(v) => setOperation(v as Operation)}>
               <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="options" className="flex items-center gap-1 text-xs px-1.5">
                   <Gift className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Получение</span>
+                  <span className="hidden sm:inline">{t("tax.tabOptions")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="conversion" className="flex items-center gap-1 text-xs px-1.5">
                   <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Конвертация</span>
+                  <span className="hidden sm:inline">{t("tax.tabConversion")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="dividends" className="flex items-center gap-1 text-xs px-1.5">
                   <Coins className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Дивиденды</span>
+                  <span className="hidden sm:inline">{t("tax.tabDividends")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="sale" className="flex items-center gap-1 text-xs px-1.5">
                   <Banknote className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Продажа</span>
+                  <span className="hidden sm:inline">{t("tax.tabSale")}</span>
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="options" className="mt-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h3 className="font-medium mb-2">Получение опциона</h3>
+                    <h3 className="font-medium mb-2">{t("tax.options.title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      При получении опционов налог не возникает для резидентов любой страны.
+                      {t("tax.options.desc")}
                     </p>
                   </div>
                   {renderOptionsResult()}
@@ -726,16 +701,16 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               <TabsContent value="conversion" className="mt-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h3 className="font-medium mb-2">Перевод опциона в акцию</h3>
+                    <h3 className="font-medium mb-2">{t("tax.conversion.title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Вы получаете доход в виде экономии при покупке акций по номинальной цене вместо рыночной.
+                      {t("tax.conversion.desc")}
                     </p>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="strikePriceUsd">Цена исполнения ($)</Label>
+                        <Label htmlFor="strikePriceUsd">{t("common.strikePrice")}</Label>
                         <Input
                           id="strikePriceUsd"
                           type="number"
@@ -744,11 +719,11 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           value={conversionInputs.strikePriceUsd || ""}
                           onChange={(e) => setConversionInputs(prev => ({ ...prev, strikePriceUsd: Number(e.target.value) }))}
                         />
-                        <p className="text-xs text-muted-foreground">Цена, которая прописана в твоём опционном контракте, по которой ты имеешь право купить акцию</p>
+                        <p className="text-xs text-muted-foreground">{t("common.strikePriceHint")}</p>
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="optionsCount">Количество опционов</Label>
+                        <Label htmlFor="optionsCount">{t("common.optionsCount")}</Label>
                         <Input
                           id="optionsCount"
                           type="number"
@@ -760,7 +735,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="fairValueUsd">Расчетная стоимость акции ($)</Label>
+                      <Label htmlFor="fairValueUsd">{t("common.fairValueUsd")}</Label>
                       <Input
                         id="fairValueUsd"
                         type="number"
@@ -769,11 +744,11 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         value={conversionInputs.fairValueUsd || ""}
                         onChange={(e) => setConversionInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
+                      <p className="text-xs text-muted-foreground">{t("common.fairValueHint")}</p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="usdRubRate">Курс USD/RUB</Label>
+                      <Label htmlFor="usdRubRate">{t("common.usdRubRate")}</Label>
                       <div className="flex gap-2">
                         <Input
                           id="usdRubRate"
@@ -789,23 +764,23 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                           className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
                         >
                           <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
-                          ЦБ РФ
+                          {t("common.cbrRate")}
                         </button>
                       </div>
-                      <p className="text-xs text-muted-foreground">Курс загружается автоматически с ЦБ РФ</p>
+                      <p className="text-xs text-muted-foreground">{t("common.rateAutoLoaded")}</p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label>Обязательный платёж при регистрации</Label>
+                      <Label>{t("common.mandatoryRegistrationFee")}</Label>
                       <div className="p-3 rounded-lg bg-muted/50 border">
                         <p className="text-lg font-semibold">$100</p>
-                        <p className="text-xs text-muted-foreground">Фиксированный платёж за регистрацию акций</p>
+                        <p className="text-xs text-muted-foreground">{t("common.registrationFeeFixed")}</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="pt-4 border-t">
-                    <h4 className="font-medium mb-3">Результат расчёта</h4>
+                    <h4 className="font-medium mb-3">{t("common.calcResult")}</h4>
                     {renderConversionResult()}
                   </div>
                 </div>
@@ -814,16 +789,16 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               <TabsContent value="dividends" className="mt-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h3 className="font-medium mb-2">Получение дивидендов</h3>
+                    <h3 className="font-medium mb-2">{t("tax.dividends.title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Расчёт налога на дивиденды и оценка выгодности конвертации опционов.
+                      {t("tax.dividends.desc")}
                     </p>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="dividendPerShare">Дивиденд на акцию (₽)</Label>
+                        <Label htmlFor="dividendPerShare">{t("common.dividendPerShare")}</Label>
                         <Input
                           id="dividendPerShare"
                           type="number"
@@ -834,7 +809,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="divSharesCount">Количество акций</Label>
+                        <Label htmlFor="divSharesCount">{t("common.sharesCount")}</Label>
                         <Input
                           id="divSharesCount"
                           type="number"
@@ -844,17 +819,15 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         />
                       </div>
                     </div>
-                    
                   </div>
                   
                   {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0) && (
                     <div className="pt-4 border-t">
-                      <h4 className="font-medium mb-3">Налог на дивиденды</h4>
+                      <h4 className="font-medium mb-3">{t("tax.dividends.taxTitle")}</h4>
                       {renderDividendResult()}
                     </div>
                   )}
                   
-                  {/* Помощник: стоит ли конвертировать */}
                   <div className="pt-4 border-t">
                     <div className="flex items-center space-x-2 mb-4">
                       <Checkbox
@@ -863,14 +836,14 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         onCheckedChange={(checked) => setDividendInputs(prev => ({ ...prev, checkConversion: checked === true }))}
                       />
                       <Label htmlFor="checkConversion" className="font-normal cursor-pointer">
-                        У меня опционы — хочу понять, выгодно ли конвертировать ради дивидендов
+                        {t("tax.dividends.checkConversion")}
                       </Label>
                     </div>
                     
                     {dividendInputs.checkConversion && (
                       <div className="space-y-4 pl-0">
                         <div className="space-y-2">
-                          <Label htmlFor="divUsdRate">Курс USD/RUB</Label>
+                          <Label htmlFor="divUsdRate">{t("common.usdRubRate")}</Label>
                           <div className="flex gap-2">
                             <Input
                               id="divUsdRate"
@@ -894,13 +867,13 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               className="px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors flex items-center gap-2 text-sm"
                             >
                               <RefreshCw className={`w-4 h-4 ${isLoadingRate ? 'animate-spin' : ''}`} />
-                              ЦБ РФ
+                              {t("common.cbrRate")}
                             </button>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="divStrikePrice">Цена исполнения ($)</Label>
+                            <Label htmlFor="divStrikePrice">{t("common.strikePrice")}</Label>
                             <Input
                               id="divStrikePrice"
                               type="number"
@@ -911,7 +884,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="divFairValue">Расчетная стоимость акции ($)</Label>
+                            <Label htmlFor="divFairValue">{t("common.fairValueUsd")}</Label>
                             <Input
                               id="divFairValue"
                               type="number"
@@ -920,16 +893,15 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               value={dividendInputs.fairValueUsd || ""}
                               onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                             />
-                            <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
+                            <p className="text-xs text-muted-foreground">{t("common.fairValueHint")}</p>
                           </div>
                         </div>
-                        
                         
                         {(dividendInputs.dividendPerShareRub > 0 && dividendInputs.sharesCount > 0 && dividendInputs.fairValueUsd > 0) && (
                           <div className="pt-2">
                             <h4 className="font-medium mb-3 flex items-center gap-2">
                               <TrendingUp className="w-4 h-4 text-primary" />
-                              Анализ окупаемости конвертации
+                              {t("tax.dividends.conversionAnalysis")}
                             </h4>
                             {renderConversionHelper()}
                           </div>
@@ -943,15 +915,15 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               <TabsContent value="sale" className="mt-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-lg bg-muted/50">
-                    <h3 className="font-medium mb-2">Продажа акций</h3>
+                    <h3 className="font-medium mb-2">{t("tax.sale.title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Налог рассчитывается от разницы между стоимостью продажи и приобретения.
+                      {t("tax.sale.desc")}
                     </p>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="acquisitionCost">Стоимость приобретения акций (₽)</Label>
+                      <Label htmlFor="acquisitionCost">{t("tax.sale.acquisitionCost")}</Label>
                       <Input
                         id="acquisitionCost"
                         type="number"
@@ -959,11 +931,11 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         value={saleInputs.acquisitionCost || ""}
                         onChange={(e) => setSaleInputs(prev => ({ ...prev, acquisitionCost: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Общая сумма, за которую вы купили акции</p>
+                      <p className="text-xs text-muted-foreground">{t("tax.sale.acquisitionCostHint")}</p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="salePrice">Стоимость продажи акций (₽)</Label>
+                      <Label htmlFor="salePrice">{t("tax.sale.salePrice")}</Label>
                       <Input
                         id="salePrice"
                         type="number"
@@ -971,25 +943,25 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                         value={saleInputs.salePrice || ""}
                         onChange={(e) => setSaleInputs(prev => ({ ...prev, salePrice: Number(e.target.value) }))}
                       />
-                      <p className="text-xs text-muted-foreground">Общая сумма, за которую вы продаёте акции</p>
+                      <p className="text-xs text-muted-foreground">{t("tax.sale.salePriceHint")}</p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="buyerType">Тип покупателя</Label>
+                      <Label htmlFor="buyerType">{t("tax.sale.buyerType")}</Label>
                       <Select value={saleInputs.buyerType} onValueChange={(v) => setSaleInputs(prev => ({ ...prev, buyerType: v as BuyerType }))}>
                         <SelectTrigger id="buyerType">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new_shareholder">Новый акционер ($300)</SelectItem>
-                          <SelectItem value="current_shareholder">Текущий акционер ($150)</SelectItem>
+                          <SelectItem value="new_shareholder">{t("tax.sale.newShareholder")}</SelectItem>
+                          <SelectItem value="current_shareholder">{t("tax.sale.currentShareholder")}</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">Стоимость регистрации сделки</p>
+                      <p className="text-xs text-muted-foreground">{t("tax.sale.regCostHint")}</p>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="saleUsdRate">Курс USD/RUB</Label>
+                      <Label htmlFor="saleUsdRate">{t("common.usdRubRate")}</Label>
                       <div className="relative">
                         <Input
                           id="saleUsdRate"
@@ -1012,7 +984,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               .finally(() => setIsLoadingRate(false));
                           }}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-md transition-colors"
-                          title="Обновить курс ЦБ"
+                          title={t("common.updateRate")}
                         >
                           <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoadingRate ? "animate-spin" : ""}`} />
                         </button>
@@ -1021,15 +993,15 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
                     {residency === "russia" && (
                       <div className="space-y-2">
-                        <Label htmlFor="saleType">Кому продаёте акции?</Label>
+                        <Label htmlFor="saleType">{t("tax.sale.sellingTo")}</Label>
                         <Select value={saleInputs.saleType} onValueChange={(v) => setSaleInputs(prev => ({ ...prev, saleType: v as SaleType }))}>
                           <SelectTrigger id="saleType">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="dp_global">DP Global Group Ltd.</SelectItem>
-                            <SelectItem value="russian_company">Другой российской компании</SelectItem>
-                            <SelectItem value="foreign_or_individual">Иностранной компании или физ. лицу</SelectItem>
+                            <SelectItem value="dp_global">{t("tax.sale.dpGlobal")}</SelectItem>
+                            <SelectItem value="russian_company">{t("tax.sale.russianCompany")}</SelectItem>
+                            <SelectItem value="foreign_or_individual">{t("tax.sale.foreignOrIndividual")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1048,13 +1020,13 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                             }))}
                           />
                           <Label htmlFor="hasConvertedOptions" className="font-normal cursor-pointer">
-                            Я конвертировал опционы в акции
+                            {t("tax.sale.convertedOptions")}
                           </Label>
                         </div>
                         
                         {saleInputs.hasConvertedOptions && (
                           <div className="space-y-2 pl-6">
-                            <Label htmlFor="paidConversionTax">Оплаченный налог при конвертации (₽)</Label>
+                            <Label htmlFor="paidConversionTax">{t("tax.sale.paidConversionTax")}</Label>
                             <Input
                               id="paidConversionTax"
                               type="number"
@@ -1062,7 +1034,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               value={saleInputs.paidConversionTax || ""}
                               onChange={(e) => setSaleInputs(prev => ({ ...prev, paidConversionTax: Number(e.target.value) }))}
                             />
-                            <p className="text-xs text-muted-foreground">Эта сумма уменьшит налог к уплате</p>
+                            <p className="text-xs text-muted-foreground">{t("tax.sale.paidConversionTaxHint")}</p>
                           </div>
                         )}
                       </div>
@@ -1070,7 +1042,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                   </div>
                   
                   <div className="pt-4 border-t">
-                    <h4 className="font-medium mb-3">Результат расчёта</h4>
+                    <h4 className="font-medium mb-3">{t("common.calcResult")}</h4>
                     {renderSaleResult()}
                   </div>
                 </div>
@@ -1080,8 +1052,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         </Card>
 
         <footer className="text-center text-xs text-muted-foreground pt-4">
-          <p>Калькулятор предоставляет справочную информацию.</p>
-          <p>Для точного расчёта рекомендуем консультацию с налоговым специалистом.</p>
+          <p>{t("index.footer1")}</p>
+          <p>{t("index.footer2")}</p>
         </footer>
       </div>
     </div>

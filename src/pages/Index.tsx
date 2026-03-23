@@ -1,25 +1,27 @@
 import { useNavigate } from "react-router-dom";
-import { Coins, ArrowRightLeft, Calculator, ChevronRight } from "lucide-react";
+import { Coins, ArrowRightLeft, Calculator, ChevronRight, Globe } from "lucide-react";
+import { useLanguage } from "@/lib/language";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { t, lang, setLang } = useLanguage();
 
   const buttons = [
     {
-      title: "Получить дивиденды 2026",
-      description: "Узнайте, получите ли вы дивиденды, сколько и нужно ли что-то делать",
+      title: t("index.dividends.title"),
+      description: t("index.dividends.desc"),
       icon: Coins,
       path: "/dividends",
     },
     {
-      title: "Перевести опционы в акции",
-      description: "Пошаговая инструкция и расчёт налога при конвертации",
+      title: t("index.convert.title"),
+      description: t("index.convert.desc"),
       icon: ArrowRightLeft,
       path: "/convert",
     },
     {
-      title: "Рассчитать налог по операции",
-      description: "Калькуляторы для всех типов операций с опционами и акциями",
+      title: t("index.tax.title"),
+      description: t("index.tax.desc"),
       icon: Calculator,
       path: "/tax",
     },
@@ -28,15 +30,26 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-10">
+        {/* Language switcher */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => setLang(lang === "ru" ? "en" : "ru")}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-foreground"
+          >
+            <Globe className="w-4 h-4" />
+            {lang === "ru" ? "EN" : "RU"}
+          </button>
+        </div>
+
         <header className="text-center space-y-4">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary shadow-soft mb-2">
             <Calculator className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight whitespace-nowrap">
-            Навигатор держателя опционов и акций
+            {t("index.title")}
           </h1>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
-            Информация по дивидендам, переводу опционов в акции и налоговым последствиям
+            {t("index.subtitle")}
           </p>
         </header>
 
@@ -62,8 +75,8 @@ const Index = () => {
         </div>
 
         <footer className="text-center text-xs text-muted-foreground pt-4 space-y-0.5">
-          <p>Калькулятор предоставляет справочную информацию.</p>
-          <p>Для точного расчёта рекомендуем консультацию с налоговым специалистом.</p>
+          <p>{t("index.footer1")}</p>
+          <p>{t("index.footer2")}</p>
         </footer>
       </div>
     </div>
