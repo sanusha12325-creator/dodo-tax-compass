@@ -344,7 +344,7 @@ export default function DividendsFlow() {
           </div>
         </div>
 
-        {dividendPerShare > 0 && fairValueRub > 0 && (() => {
+        {dividendPerShare > 0 && fairValueUsd > 0 && (() => {
           const divs = calcDividends(optionsCount);
           const conv = calcConversionCosts(optionsCount);
           const netAfterAll = divs.net - conv.totalCost;
