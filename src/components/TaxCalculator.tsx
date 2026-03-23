@@ -139,7 +139,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
 
   // Conversion calculations
   const calculateConversion = () => {
-    const { strikePriceUsd, fairValueRub, optionsCount, usdRubRate } = conversionInputs;
+    const { strikePriceUsd, fairValueUsd, optionsCount, usdRubRate } = conversionInputs;
     
     // K = Strike price × USD/RUB × Quantity
     const K = strikePriceUsd * usdRubRate * optionsCount;
@@ -147,8 +147,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     // L = Registration fee in USD × USD/RUB
     const L = REGISTRATION_FEE * usdRubRate;
     
-    // M = Fair Value × Quantity × 0.8 (20% discount)
-    const M = fairValueRub * optionsCount * 0.8;
+    // M = Fair Value (USD) × USD/RUB × Quantity × 0.8 (20% discount)
+    const M = fairValueUsd * usdRubRate * optionsCount * 0.8;
     
     // N = M - (K + L)
     const N = M - (K + L);
