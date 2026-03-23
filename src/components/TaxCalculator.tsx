@@ -40,7 +40,7 @@ interface DividendInputs {
   // Помощник: стоит ли конвертировать
   checkConversion: boolean;
   strikePriceUsd: number;
-  fairValueRub: number;
+  fairValueUsd: number;
   
 }
 
