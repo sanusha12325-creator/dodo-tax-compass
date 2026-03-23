@@ -920,7 +920,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
                               value={dividendInputs.fairValueUsd || ""}
                               onChange={(e) => setDividendInputs(prev => ({ ...prev, fairValueUsd: Number(e.target.value) }))}
                             />
-                            <p className="text-xs text-muted-foreground">3800 ₽ при оценке $228 млн</p>
+                            <p className="text-xs text-muted-foreground">Определенная по методу чистых активов, 11,1889 USD на акцию по состоянию на 31.12.2025</p>
                           </div>
                         </div>
                         
