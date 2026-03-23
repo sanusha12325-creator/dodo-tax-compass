@@ -458,7 +458,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
   };
 
   const calculateConversionCosts = () => {
-    const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate, isCurrentShareholder } = dividendInputs;
+    const { strikePriceUsd, fairValueRub, sharesCount, usdRubRate } = dividendInputs;
     const registrationFee = 100; // USD — одинаковая стоимость для всех при выпуске акций
     const K = strikePriceUsd * usdRubRate * sharesCount;
     const L = REGISTRATION_FEE * usdRubRate;
