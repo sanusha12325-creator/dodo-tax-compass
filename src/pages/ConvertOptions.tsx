@@ -140,7 +140,7 @@ export default function ConvertOptions() {
   const renderCalculator = () => {
     const K = strikePriceUsd * usdRubRate * optionsCount;
     const L = REGISTRATION_FEE * usdRubRate;
-    const M = fairValueRub * optionsCount * 0.8;
+    const M = fairValueUsd * usdRubRate * optionsCount * 0.8;
     const N = M - (K + L);
     const actualCostUsd = strikePriceUsd * optionsCount;
     const totalFormalizationUsd = actualCostUsd + REGISTRATION_FEE;
