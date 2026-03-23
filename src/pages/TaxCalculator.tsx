@@ -2,9 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import TaxCalculator from "@/components/TaxCalculator";
+import { useLanguage } from "@/lib/language";
 
 export default function TaxCalculatorPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background">
@@ -14,8 +16,8 @@ export default function TaxCalculatorPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Рассчитать налог по операции</h1>
-            <p className="text-sm text-muted-foreground">Калькуляторы для всех типов операций</p>
+            <h1 className="text-xl font-bold text-foreground">{t("tax.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("tax.subtitle")}</p>
           </div>
         </div>
       </div>
