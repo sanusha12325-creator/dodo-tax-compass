@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import TaxCalculator from "@/components/TaxCalculator";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function TaxCalculatorPage() {
   const navigate = useNavigate();
