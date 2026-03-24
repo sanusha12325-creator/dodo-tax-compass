@@ -488,9 +488,10 @@ export default function DividendsFlow() {
               <p className="font-bold">{formatCurrency(scenario1.totalRub)}</p>
             </div>
             {residency === "russia" && (
-              <div className="p-3 rounded-lg bg-muted/30">
-                <p className="text-xs text-muted-foreground">{taxLabel}</p>
+              <div className="p-3 rounded-lg bg-destructive/5">
+                <p className="text-xs text-muted-foreground">{t("common.expenses")}</p>
                 <p className="font-bold">{formatCurrency(scenario1.tax)}</p>
+                <p className="text-[10px] text-muted-foreground">{taxLabel} ({scenario1.rate})</p>
               </div>
             )}
             <div className="p-3 rounded-lg bg-success/10 border border-success/20">
