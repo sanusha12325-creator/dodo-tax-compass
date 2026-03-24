@@ -210,14 +210,19 @@ export default function DividendsFlow() {
           <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
           <p className="text-4xl font-bold">{formatCurrency(net)}</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="p-4 rounded-lg border bg-muted/20">
             <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
           </div>
           <div className="p-4 rounded-lg border bg-destructive/5">
-            <p className="text-sm text-muted-foreground mb-1">{taxLabel} ({rate})</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
             <p className="text-lg font-bold">{formatCurrency(tax)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{taxLabel} ({rate})</p>
+          </div>
+          <div className="p-4 rounded-lg border bg-success/10">
+            <p className="text-sm text-muted-foreground mb-1">{t("div.total")}</p>
+            <p className="text-lg font-bold text-success">{formatCurrency(net)}</p>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">{breakdown}</p>
@@ -335,6 +340,7 @@ export default function DividendsFlow() {
         {dividendPerShare > 0 && fairValueUsd > 0 && (() => {
           const divs = calcDividends(optionsCount);
           const conv = calcConversionCosts(optionsCount);
+          const totalExpenses = conv.totalCost + divs.tax;
           const netAfterAll = divs.net - conv.totalCost;
 
           return (
@@ -344,36 +350,33 @@ export default function DividendsFlow() {
                 <p className="text-2xl font-bold">{formatCurrency(divs.totalRub)}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {residency === "russia" && (
-                  <>
-                    <div className="p-4 rounded-lg border bg-muted/20">
-                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} {t("div.taxOnConversion")}</p>
-                      <p className="text-lg font-bold">{formatCurrency(conv.conversionTax)}</p>
-                    </div>
-                    <div className="p-4 rounded-lg border bg-muted/20">
-                      <p className="text-xs text-muted-foreground mb-1">🧾 {taxLabel} {t("div.taxOnDividends")}</p>
-                      <p className="text-lg font-bold">{formatCurrency(divs.tax)}</p>
-                    </div>
-                  </>
-                )}
-                {residency === "kazakhstan" && (
-                  <div className="p-4 rounded-lg border bg-success/10 col-span-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      <p className="text-sm text-success font-medium">{t("div.noIpnAifc")}</p>
-                    </div>
-                  </div>
-                )}
-                {residency === "other" && (
-                  <div className="p-4 rounded-lg border bg-warning/10 col-span-2">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-warning" />
-                      <p className="text-sm text-warning font-medium">{t("div.checkLocalTax")}</p>
-                    </div>
-                  </div>
-                )}
+              <div className="p-4 rounded-lg border bg-destructive/5">
+                <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalExpenses)}</p>
+                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <p>• {lang === "ru" ? "Страйк (K)" : "Strike (K)"}: {formatCurrency(conv.K)}</p>
+                  <p>• {lang === "ru" ? "Регистрация (L)" : "Registration (L)"}: {formatCurrency(conv.regCostRub)}</p>
+                  {residency === "russia" && conv.conversionTax > 0 && (
+                    <p>• {taxLabel} {t("div.taxOnConversion")}: {formatCurrency(conv.conversionTax)}</p>
+                  )}
+                  {residency === "russia" && divs.tax > 0 && (
+                    <p>• {taxLabel} {t("div.taxOnDividends")}: {formatCurrency(divs.tax)}</p>
+                  )}
+                </div>
               </div>
+
+              {residency === "kazakhstan" && (
+                <Alert className="border-success/30 bg-success/5">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                  <AlertDescription className="text-sm">{t("div.noIpnAifc")}</AlertDescription>
+                </Alert>
+              )}
+              {residency === "other" && (
+                <Alert className="border-warning/30 bg-warning/5">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <AlertDescription className="text-sm">{t("div.checkLocalTax")}</AlertDescription>
+                </Alert>
+              )}
 
               <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
                 <p className="text-sm opacity-90 mb-1">{t("div.totalToReceive")}</p>
@@ -485,9 +488,10 @@ export default function DividendsFlow() {
               <p className="font-bold">{formatCurrency(scenario1.totalRub)}</p>
             </div>
             {residency === "russia" && (
-              <div className="p-3 rounded-lg bg-muted/30">
-                <p className="text-xs text-muted-foreground">{taxLabel}</p>
+              <div className="p-3 rounded-lg bg-destructive/5">
+                <p className="text-xs text-muted-foreground">{t("common.expenses")}</p>
                 <p className="font-bold">{formatCurrency(scenario1.tax)}</p>
+                <p className="text-[10px] text-muted-foreground">{taxLabel} ({scenario1.rate})</p>
               </div>
             )}
             <div className="p-3 rounded-lg bg-success/10 border border-success/20">
@@ -509,17 +513,17 @@ export default function DividendsFlow() {
               <p className="text-xs text-muted-foreground">{t("common.dividendsBeforeTax")}</p>
               <p className="font-bold">{formatCurrency(scenario2Divs.totalRub)}</p>
             </div>
-            {residency === "russia" && (
-              <div className="p-3 rounded-lg bg-background/50">
-                <p className="text-xs text-muted-foreground">{taxLabel} {t("div.dividendsTaxLabel")}</p>
-                <p className="font-bold">{formatCurrency(scenario2Divs.tax)}</p>
+            <div className="p-3 rounded-lg bg-destructive/5">
+              <p className="text-xs text-muted-foreground">{t("common.expenses")}</p>
+              <p className="font-bold">{formatCurrency(conv.totalCost + scenario2Divs.tax)}</p>
+              <div className="text-[10px] text-muted-foreground mt-1 space-y-0.5">
+                <p>• {t("div.conversionExpenses")}: {formatCurrency(conv.totalCost)}</p>
+                {residency === "russia" && scenario2Divs.tax > 0 && (
+                  <p>• {taxLabel} {t("div.dividendsTaxLabel")}: {formatCurrency(scenario2Divs.tax)}</p>
+                )}
               </div>
-            )}
-            <div className="p-3 rounded-lg bg-background/50">
-              <p className="text-xs text-muted-foreground">{t("div.conversionExpenses")}</p>
-              <p className="font-bold">{formatCurrency(conv.totalCost)}</p>
             </div>
-            <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+            <div className="p-3 rounded-lg bg-success/10 border border-success/20 col-span-2">
               <p className="text-xs text-muted-foreground">{t("div.total")}</p>
               <p className="font-bold text-success">{formatCurrency(Math.max(0, scenario2Net))}</p>
             </div>
