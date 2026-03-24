@@ -313,7 +313,7 @@ export default function DividendsFlow() {
           </div>
           <div className="space-y-2">
             <Label>{t("common.fairValueUsd")}</Label>
-            <Input type="number" step="0.01" placeholder="11.19" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+            <Input type="number" step="0.01" placeholder="0" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
             <p className="text-xs text-muted-foreground">{t("common.fairValueHint")}</p>
           </div>
           <div className="space-y-2">
@@ -422,7 +422,7 @@ export default function DividendsFlow() {
         </div>
         <div className="space-y-2">
           <Label>{t("common.fairValueUsd")}</Label>
-          <Input type="number" step="0.01" placeholder="11.19" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
+          <Input type="number" step="0.01" placeholder="0" value={fairValueUsd || ""} onChange={e => setFairValueUsd(Number(e.target.value))} />
           <p className="text-xs text-muted-foreground">{t("common.fairValueHint")}</p>
         </div>
         <div className="space-y-2">
