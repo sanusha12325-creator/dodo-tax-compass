@@ -81,7 +81,7 @@ export default function DividendsFlow() {
     const M = fairValueUsd * usdRubRate * count * 0.8;
     const N = M - (K + L);
     const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
-    const regFee = ownership === "both" ? 315 : 515;
+    const regFee = 100;
     const regCostRub = regFee * usdRubRate;
     const totalCost = K + regCostRub + conversionTax;
     return { K, L, M, N, conversionTax, regCostRub, regFee, totalCost };
