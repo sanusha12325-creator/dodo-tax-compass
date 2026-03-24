@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Coins, ArrowRightLeft, Calculator, ChevronRight, Globe } from "lucide-react";
+import { Coins, ArrowRightLeft, Calculator, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Index = () => {
   const navigate = useNavigate();
