@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, CheckCircle2, AlertTriangle, Info, Coins, RefreshCw, TrendingUp, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type OwnershipType = null | "only_shares" | "only_options" | "both";
 type Residency = "russia" | "kazakhstan" | "other";
