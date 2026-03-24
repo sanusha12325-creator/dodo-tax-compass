@@ -210,14 +210,19 @@ export default function DividendsFlow() {
           <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
           <p className="text-4xl font-bold">{formatCurrency(net)}</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="p-4 rounded-lg border bg-muted/20">
             <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
             <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
           </div>
           <div className="p-4 rounded-lg border bg-destructive/5">
-            <p className="text-sm text-muted-foreground mb-1">{taxLabel} ({rate})</p>
+            <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
             <p className="text-lg font-bold">{formatCurrency(tax)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{taxLabel} ({rate})</p>
+          </div>
+          <div className="p-4 rounded-lg border bg-success/10">
+            <p className="text-sm text-muted-foreground mb-1">{t("div.total")}</p>
+            <p className="text-lg font-bold text-success">{formatCurrency(net)}</p>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">{breakdown}</p>
