@@ -513,17 +513,17 @@ export default function DividendsFlow() {
               <p className="text-xs text-muted-foreground">{t("common.dividendsBeforeTax")}</p>
               <p className="font-bold">{formatCurrency(scenario2Divs.totalRub)}</p>
             </div>
-            {residency === "russia" && (
-              <div className="p-3 rounded-lg bg-background/50">
-                <p className="text-xs text-muted-foreground">{taxLabel} {t("div.dividendsTaxLabel")}</p>
-                <p className="font-bold">{formatCurrency(scenario2Divs.tax)}</p>
+            <div className="p-3 rounded-lg bg-destructive/5">
+              <p className="text-xs text-muted-foreground">{t("common.expenses")}</p>
+              <p className="font-bold">{formatCurrency(conv.totalCost + scenario2Divs.tax)}</p>
+              <div className="text-[10px] text-muted-foreground mt-1 space-y-0.5">
+                <p>• {t("div.conversionExpenses")}: {formatCurrency(conv.totalCost)}</p>
+                {residency === "russia" && scenario2Divs.tax > 0 && (
+                  <p>• {taxLabel} {t("div.dividendsTaxLabel")}: {formatCurrency(scenario2Divs.tax)}</p>
+                )}
               </div>
-            )}
-            <div className="p-3 rounded-lg bg-background/50">
-              <p className="text-xs text-muted-foreground">{t("div.conversionExpenses")}</p>
-              <p className="font-bold">{formatCurrency(conv.totalCost)}</p>
             </div>
-            <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+            <div className="p-3 rounded-lg bg-success/10 border border-success/20 col-span-2">
               <p className="text-xs text-muted-foreground">{t("div.total")}</p>
               <p className="font-bold text-success">{formatCurrency(Math.max(0, scenario2Net))}</p>
             </div>
