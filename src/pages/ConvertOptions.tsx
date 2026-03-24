@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle, Info, ExternalLink, RefreshCw, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type Residency = "russia" | "kazakhstan" | "other";
 
@@ -321,10 +322,11 @@ export default function ConvertOptions() {
           <Button variant="ghost" size="icon" onClick={() => screen > 0 ? setScreen(screen - 1) : navigate("/")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t("convert.title")}</h1>
             <p className="text-sm text-muted-foreground">{t("convert.subtitle")}</p>
           </div>
+          <LanguageSwitcher />
         </div>
 
         <div className="flex gap-1">

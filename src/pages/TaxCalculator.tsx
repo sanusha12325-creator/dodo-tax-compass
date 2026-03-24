@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import TaxCalculator from "@/components/TaxCalculator";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function TaxCalculatorPage() {
   const navigate = useNavigate();
@@ -15,10 +16,11 @@ export default function TaxCalculatorPage() {
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t("tax.title")}</h1>
             <p className="text-sm text-muted-foreground">{t("tax.subtitle")}</p>
           </div>
+          <LanguageSwitcher />
         </div>
       </div>
       <TaxCalculator hideHeader />

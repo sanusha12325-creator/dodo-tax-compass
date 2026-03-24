@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Coins, ArrowRightLeft, Calculator, ChevronRight, Globe } from "lucide-react";
+import { Coins, ArrowRightLeft, Calculator, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,13 +33,7 @@ const Index = () => {
       <div className="max-w-2xl mx-auto space-y-10">
         {/* Language switcher */}
         <div className="flex justify-end">
-          <button
-            onClick={() => setLang(lang === "ru" ? "en" : "ru")}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-foreground"
-          >
-            <Globe className="w-4 h-4" />
-            {lang === "ru" ? "EN" : "RU"}
-          </button>
+          <LanguageSwitcher />
         </div>
 
         <header className="text-center space-y-4">

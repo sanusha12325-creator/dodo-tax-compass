@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, CheckCircle2, AlertTriangle, Info, Coins, RefreshCw, TrendingUp, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type OwnershipType = null | "only_shares" | "only_options" | "both";
 type Residency = "russia" | "kazakhstan" | "other";
@@ -582,10 +583,11 @@ export default function DividendsFlow() {
           <Button variant="ghost" size="icon" onClick={() => canGoBack ? (step === 1 ? reset() : setStep(step - 1)) : navigate("/")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t("div.title")}</h1>
             <p className="text-sm text-muted-foreground">{t("div.subtitle")}</p>
           </div>
+          <LanguageSwitcher />
         </div>
 
         {ownership && (
