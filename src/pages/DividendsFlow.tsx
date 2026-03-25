@@ -385,23 +385,23 @@ export default function DividendsFlow() {
 
           return (
             <div className="space-y-4 pt-4 border-t">
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <div className="flex items-center gap-2 mb-1"><Coins className="w-4 h-4 text-primary" /><p className="text-sm text-muted-foreground">{t("div.potentialDividends")}</p></div>
-                <p className="text-2xl font-bold">{formatCurrency(divs.totalRub)}</p>
+              <div className="p-4 rounded-lg border bg-destructive/5">
+                <p className="text-sm font-semibold mb-2">{t("div.whatYouPayNow")}</p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">{t("div.strikeLabel")}</span><span className="font-medium">{formatCurrency(conv.K)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">{t("div.registrationLabel")}</span><span className="font-medium">{formatCurrency(conv.regCostRub)}</span></div>
+                  {conv.conversionTax > 0 && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">{t("div.conversionTaxLabel")}</span><span className="font-medium">{formatCurrency(conv.conversionTax)}</span></div>
+                  )}
+                  <div className="flex justify-between pt-1 border-t border-destructive/20 font-semibold"><span>{t("div.total")}</span><span>{formatCurrency(conv.totalCost)}</span></div>
+                </div>
               </div>
 
-              <div className="p-4 rounded-lg border bg-destructive/5">
-                <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalExpenses)}</p>
-                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  <p>• {lang === "ru" ? "Страйк (K)" : "Strike (K)"}: {formatCurrency(conv.K)}</p>
-                  <p>• {lang === "ru" ? "Регистрация (L)" : "Registration (L)"}: {formatCurrency(conv.regCostRub)}</p>
-                  {(residency === "russia" || residency === "kazakhstan") && conv.conversionTax > 0 && (
-                    <p>• {taxLabel} {t("div.taxOnConversion")}: {formatCurrency(conv.conversionTax)}</p>
-                  )}
-                  {(residency === "russia" || residency === "kazakhstan") && divs.tax > 0 && (
-                    <p>• {taxLabel} {t("div.taxOnDividends")}: {formatCurrency(divs.tax)}</p>
-                  )}
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm font-semibold mb-2">{t("div.whatYouReceive")}</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t("common.dividendsBeforeTax")}</span>
+                  <span className="font-bold text-lg">{formatCurrency(divs.totalRub)}</span>
                 </div>
               </div>
 
@@ -417,14 +417,6 @@ export default function DividendsFlow() {
                   <AlertDescription className="text-sm">{t("div.checkLocalTax")}</AlertDescription>
                 </Alert>
               )}
-
-              <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-                <p className="text-sm opacity-90 mb-1">{t("div.totalToReceive")}</p>
-                <p className="text-4xl font-bold">{formatCurrency(Math.max(0, netAfterAll))}</p>
-                {residency === "other" && (
-                  <p className="text-xs opacity-75 mt-1">{t("div.excludingLocalTax")}</p>
-                )}
-              </div>
 
               <Alert className="border-warning/30 bg-warning/5">
                 <AlertTriangle className="h-4 w-4 text-warning" />
@@ -548,24 +540,24 @@ export default function DividendsFlow() {
             {t("div.withConversion")}
           </h4>
           <p className="text-sm text-muted-foreground">{t("div.dividendsOnAllShares")} {totalShares} {t("div.sharesCurrentPlusConverted")}</p>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-3 rounded-lg bg-background/50">
-              <p className="text-xs text-muted-foreground">{t("common.dividendsBeforeTax")}</p>
-              <p className="font-bold">{formatCurrency(scenario2Divs.totalRub)}</p>
-            </div>
+          <div className="space-y-2">
             <div className="p-3 rounded-lg bg-destructive/5">
-              <p className="text-xs text-muted-foreground">{t("common.expenses")}</p>
-              <p className="font-bold">{formatCurrency(conv.totalCost + scenario2Divs.tax)}</p>
-              <div className="text-[10px] text-muted-foreground mt-1 space-y-0.5">
-                <p>• {t("div.conversionExpenses")}: {formatCurrency(conv.totalCost)}</p>
-                {(residency === "russia" || residency === "kazakhstan") && scenario2Divs.tax > 0 && (
-                  <p>• {taxLabel} {t("div.dividendsTaxLabel")}: {formatCurrency(scenario2Divs.tax)}</p>
+              <p className="text-xs font-semibold mb-1">{t("div.whatYouPayNow")}</p>
+              <div className="space-y-0.5 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">{t("div.strikeLabel")}</span><span className="font-medium">{formatCurrency(conv.K)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">{t("div.registrationLabel")}</span><span className="font-medium">{formatCurrency(conv.regCostRub)}</span></div>
+                {conv.conversionTax > 0 && (
+                  <div className="flex justify-between"><span className="text-muted-foreground">{t("div.conversionTaxLabel")}</span><span className="font-medium">{formatCurrency(conv.conversionTax)}</span></div>
                 )}
+                <div className="flex justify-between pt-1 border-t border-destructive/20 font-semibold text-sm"><span>{t("div.total")}</span><span>{formatCurrency(conv.totalCost)}</span></div>
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-success/10 border border-success/20 col-span-2">
-              <p className="text-xs text-muted-foreground">{t("div.total")}</p>
-              <p className="font-bold text-success">{formatCurrency(Math.max(0, scenario2Net))}</p>
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs font-semibold mb-1">{t("div.whatYouReceive")}</p>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">{t("common.dividendsBeforeTax")}</span>
+                <span className="font-bold text-sm">{formatCurrency(scenario2Divs.totalRub)}</span>
+              </div>
             </div>
           </div>
         </div>
