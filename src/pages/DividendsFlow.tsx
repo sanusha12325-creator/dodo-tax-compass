@@ -385,7 +385,7 @@ export default function DividendsFlow() {
 
           return (
             <div className="space-y-4 pt-4 border-t">
-              <div className="p-4 rounded-lg border bg-destructive/5">
+              <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-sm font-semibold mb-2">{t("div.whatYouPayNow")}</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">{t("div.strikeLabel")}</span><span className="font-medium">{formatCurrency(conv.K)}</span></div>
@@ -393,11 +393,11 @@ export default function DividendsFlow() {
                   {conv.conversionTax > 0 && (
                     <div className="flex justify-between"><span className="text-muted-foreground">{t("div.conversionTaxLabel")}</span><span className="font-medium">{formatCurrency(conv.conversionTax)}</span></div>
                   )}
-                  <div className="flex justify-between pt-1 border-t border-destructive/20 font-semibold"><span>{t("div.total")}</span><span>{formatCurrency(conv.totalCost)}</span></div>
+                  <div className="flex justify-between pt-1 border-t font-semibold"><span>{t("div.total")}</span><span>{formatCurrency(conv.totalCost)}</span></div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-sm font-semibold mb-2">{t("div.whatYouReceive")}</p>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t("common.dividendsBeforeTax")}</span>
@@ -541,7 +541,7 @@ export default function DividendsFlow() {
           </h4>
           <p className="text-sm text-muted-foreground">{t("div.dividendsOnAllShares")} {totalShares} {t("div.sharesCurrentPlusConverted")}</p>
           <div className="space-y-2">
-            <div className="p-3 rounded-lg bg-destructive/5">
+            <div className="p-3 rounded-lg bg-muted/50 border">
               <p className="text-xs font-semibold mb-1">{t("div.whatYouPayNow")}</p>
               <div className="space-y-0.5 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">{t("div.strikeLabel")}</span><span className="font-medium">{formatCurrency(conv.K)}</span></div>
@@ -549,10 +549,10 @@ export default function DividendsFlow() {
                 {conv.conversionTax > 0 && (
                   <div className="flex justify-between"><span className="text-muted-foreground">{t("div.conversionTaxLabel")}</span><span className="font-medium">{formatCurrency(conv.conversionTax)}</span></div>
                 )}
-                <div className="flex justify-between pt-1 border-t border-destructive/20 font-semibold text-sm"><span>{t("div.total")}</span><span>{formatCurrency(conv.totalCost)}</span></div>
+                <div className="flex justify-between pt-1 border-t font-semibold text-sm"><span>{t("div.total")}</span><span>{formatCurrency(conv.totalCost)}</span></div>
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="p-3 rounded-lg bg-muted/50 border">
               <p className="text-xs font-semibold mb-1">{t("div.whatYouReceive")}</p>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">{t("common.dividendsBeforeTax")}</span>
