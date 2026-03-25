@@ -88,7 +88,7 @@ export default function DividendsFlow() {
     const L = REGISTRATION_FEE * usdRubRate;
     const M = fairValueUsd * usdRubRate * count * 0.8;
     const N = M - (K + L);
-    const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0;
+    const conversionTax = residency === "russia" && N > 0 ? calculateNdfl(N).tax : 0; // Conversion tax only for Russia (Kazakhstan AIFC exemption on conversion)
     const regFee = 100;
     const regCostRub = regFee * usdRubRate;
     const totalCost = K + regCostRub + conversionTax;
