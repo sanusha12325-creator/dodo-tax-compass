@@ -20,6 +20,7 @@ export default function DividendsFlow() {
   const { t, lang } = useLanguage();
   const [step, setStep] = useState(0);
   const [residency, setResidency] = useState<Residency>("russia");
+  const [hasCertificate, setHasCertificate] = useState(false);
   const [ownership, setOwnership] = useState<OwnershipType>(null);
   const [sharesCount, setSharesCount] = useState(0);
   const [optionsCount, setOptionsCount] = useState(0);
@@ -71,6 +72,13 @@ export default function DividendsFlow() {
     if (residency === "russia") {
       const { tax, rate, breakdown } = calculateNdfl(totalRub);
       return { totalRub, tax, rate, breakdown, net: totalRub - tax };
+    }
+    if (residency === "kazakhstan") {
+      const kazRate = hasCertificate ? 0.10 : 0.15;
+      const kazRateLabel = hasCertificate ? "10%" : "15%";
+      const tax = totalRub * kazRate;
+      const breakdown = `${formatCurrency(totalRub)} × ${kazRateLabel} = ${formatCurrency(tax)}`;
+      return { totalRub, tax, rate: kazRateLabel, breakdown, net: totalRub - tax };
     }
     return { totalRub, tax: 0, rate: "0%", breakdown: lang === "ru" ? "Налог не взимается" : "No tax", net: totalRub };
   };
@@ -139,18 +147,34 @@ export default function DividendsFlow() {
   );
 
   const renderResidencySelector = () => (
-    <div className="flex items-center gap-3 mb-4">
-      <Label className="text-sm whitespace-nowrap">{t("common.residency")}</Label>
-      <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
-        <SelectTrigger className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="russia">{t("common.russia")}</SelectItem>
-          <SelectItem value="kazakhstan">{t("common.kazakhstan")}</SelectItem>
-          <SelectItem value="other">{t("common.other")}</SelectItem>
-        </SelectContent>
-      </Select>
+    <div className="space-y-3 mb-4">
+      <div className="flex items-center gap-3">
+        <Label className="text-sm whitespace-nowrap">{t("common.residency")}</Label>
+        <Select value={residency} onValueChange={(v) => setResidency(v as Residency)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="russia">{t("common.russia")}</SelectItem>
+            <SelectItem value="kazakhstan">{t("common.kazakhstan")}</SelectItem>
+            <SelectItem value="other">{t("common.other")}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {residency === "kazakhstan" && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
+          <input
+            type="checkbox"
+            id="certificate"
+            checked={hasCertificate}
+            onChange={(e) => setHasCertificate(e.target.checked)}
+            className="w-4 h-4 rounded border-muted-foreground"
+          />
+          <label htmlFor="certificate" className="text-sm text-foreground cursor-pointer">
+            {t("div.hasCertificate")}
+          </label>
+        </div>
+      )}
     </div>
   );
 
@@ -162,21 +186,37 @@ export default function DividendsFlow() {
         <div className="space-y-4">
           {renderResidencySelector()}
           <h3 className="text-lg font-semibold">{t("common.result")}</h3>
-          <Alert className="border-success/30 bg-success/5">
-            <CheckCircle2 className="h-5 w-5 text-success" />
-            <AlertTitle className="text-success font-semibold">{t("tax.dividends.noIpn")}</AlertTitle>
+          <Alert className="border-primary/30 bg-primary/5">
+            <Info className="h-5 w-5 text-primary" />
+            <AlertTitle className="text-foreground font-semibold">{t("div.kazDivTaxTitle")}</AlertTitle>
             <AlertDescription className="text-muted-foreground mt-2">
-              {t("div.kazNoIpnDivs")}
+              {t("div.kazDivTaxDesc")}
             </AlertDescription>
           </Alert>
           <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
             <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
             <p className="text-4xl font-bold">{formatCurrency(net)}</p>
           </div>
-          <div className="p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">{t("common.dividends")}</p>
-            <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-4 rounded-lg border bg-muted/20">
+              <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
+              <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-destructive/5">
+              <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
+              <p className="text-lg font-bold">{formatCurrency(tax)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{taxLabel} ({rate})</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-success/10">
+              <p className="text-sm text-muted-foreground mb-1">{t("div.total")}</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(net)}</p>
+            </div>
           </div>
+          <p className="text-xs text-muted-foreground">{breakdown}</p>
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>{t("div.kazTaxWithheldByCompany")}</AlertDescription>
+          </Alert>
         </div>
       );
     }
@@ -356,19 +396,19 @@ export default function DividendsFlow() {
                 <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                   <p>• {lang === "ru" ? "Страйк (K)" : "Strike (K)"}: {formatCurrency(conv.K)}</p>
                   <p>• {lang === "ru" ? "Регистрация (L)" : "Registration (L)"}: {formatCurrency(conv.regCostRub)}</p>
-                  {residency === "russia" && conv.conversionTax > 0 && (
+                  {(residency === "russia" || residency === "kazakhstan") && conv.conversionTax > 0 && (
                     <p>• {taxLabel} {t("div.taxOnConversion")}: {formatCurrency(conv.conversionTax)}</p>
                   )}
-                  {residency === "russia" && divs.tax > 0 && (
+                  {(residency === "russia" || residency === "kazakhstan") && divs.tax > 0 && (
                     <p>• {taxLabel} {t("div.taxOnDividends")}: {formatCurrency(divs.tax)}</p>
                   )}
                 </div>
               </div>
 
               {residency === "kazakhstan" && (
-                <Alert className="border-success/30 bg-success/5">
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                  <AlertDescription className="text-sm">{t("div.noIpnAifc")}</AlertDescription>
+                <Alert className="border-primary/30 bg-primary/5">
+                  <Info className="h-4 w-4 text-primary" />
+                  <AlertDescription className="text-sm">{t("div.kazDivTaxWithheld")}</AlertDescription>
                 </Alert>
               )}
               {residency === "other" && (
@@ -458,10 +498,10 @@ export default function DividendsFlow() {
         <h3 className="text-lg font-semibold">{t("div.comparativeCalc")}</h3>
 
         {residency === "kazakhstan" && (
-          <Alert className="border-success/30 bg-success/5">
-            <CheckCircle2 className="h-4 w-4 text-success" />
+          <Alert className="border-primary/30 bg-primary/5">
+            <Info className="h-4 w-4 text-primary" />
             <AlertDescription className="text-sm">
-              {t("div.kazNoIpnDivsConv")}
+              {t("div.kazDivTaxWithheld")}
             </AlertDescription>
           </Alert>
         )}
@@ -482,12 +522,12 @@ export default function DividendsFlow() {
             {t("div.noConversion")}
           </h4>
           <p className="text-sm text-muted-foreground">{t("div.dividendsOnCurrentShares")} {sharesCount} {t("div.sharesWord")}</p>
-          <div className={`grid gap-2 ${residency === "russia" ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className={`grid gap-2 ${residency === "russia" || residency === "kazakhstan" ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div className="p-3 rounded-lg bg-muted/30">
               <p className="text-xs text-muted-foreground">{t("div.beforeTax")}</p>
               <p className="font-bold">{formatCurrency(scenario1.totalRub)}</p>
             </div>
-            {residency === "russia" && (
+            {(residency === "russia" || residency === "kazakhstan") && (
               <div className="p-3 rounded-lg bg-destructive/5">
                 <p className="text-xs text-muted-foreground">{t("common.expenses")}</p>
                 <p className="font-bold">{formatCurrency(scenario1.tax)}</p>
@@ -518,7 +558,7 @@ export default function DividendsFlow() {
               <p className="font-bold">{formatCurrency(conv.totalCost + scenario2Divs.tax)}</p>
               <div className="text-[10px] text-muted-foreground mt-1 space-y-0.5">
                 <p>• {t("div.conversionExpenses")}: {formatCurrency(conv.totalCost)}</p>
-                {residency === "russia" && scenario2Divs.tax > 0 && (
+                {(residency === "russia" || residency === "kazakhstan") && scenario2Divs.tax > 0 && (
                   <p>• {taxLabel} {t("div.dividendsTaxLabel")}: {formatCurrency(scenario2Divs.tax)}</p>
                 )}
               </div>
