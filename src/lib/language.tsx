@@ -363,7 +363,7 @@ const translations: Record<string, Record<Language, string>> = {
   "example.rubles": { ru: "Рубли", en: "Rubles" },
 
   "index.checklist.title": { ru: "Чек-лист", en: "Checklist" },
-  "index.checklist.desc": { ru: "Пошаговый чек-лист для акционеров и конвертации опционов", en: "Step-by-step checklist for shareholders and option conversion" },
+  "index.checklist.desc": { ru: "Пошаговый чек-лист для акционеров и опционеров", en: "Step-by-step checklist for shareholders and option holders" },
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
