@@ -68,7 +68,7 @@ export default function Checklist() {
               {step.hasLink && (
                 <a href={step.link} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
-                  {t("checklist.openForm")} <ExternalLink className="w-3 h-3" />
+                  {t(step.isNavigator ? "checklist.openNavigator" : "checklist.openForm")} <ExternalLink className="w-3 h-3" />
                 </a>
               )}
               {step.hasPdf && (
