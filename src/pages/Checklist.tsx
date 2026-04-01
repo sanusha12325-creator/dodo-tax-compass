@@ -100,7 +100,16 @@ export default function Checklist() {
             {scenario === "shareholder" && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-foreground">{t("checklist.scenario.shareholder")}</h3>
-                {renderSteps(shareholderSteps)}
+                <div className="p-4 rounded-lg border bg-card space-y-2">
+                  <p className="text-sm text-foreground">{t("checklist.sh.fillForm")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <a href="https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/" target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
+                      {t("checklist.openForm")} <ExternalLink className="w-3 h-3" />
+                    </a>
+                    <FormExample />
+                  </div>
+                </div>
               </div>
             )}
             {scenario === "convert" && (
