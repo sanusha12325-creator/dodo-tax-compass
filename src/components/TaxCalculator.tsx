@@ -182,6 +182,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             <p className="text-sm opacity-90 mb-1">{t("tax.conversion.ndflToPay")} ({rate})</p>
             <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+            <p className="text-xs opacity-60 mt-1">{t("tax.convTaxLabel.russia")}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
@@ -233,6 +234,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               {t("tax.conversion.noIpnDesc")}
             </AlertDescription>
           </Alert>
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.convTaxLabel.kazakhstan")}</span></p>
+          </div>
           
           <div className="p-4 rounded-lg bg-muted/50 space-y-2">
             <div className="text-sm space-y-1">
@@ -268,6 +272,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             {t("tax.conversion.analysisDesc")}
           </AlertDescription>
         </Alert>
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.convTaxLabel.other")}</span></p>
+        </div>
         
         <div className="p-4 rounded-lg bg-muted/50 space-y-2">
           <div className="text-sm space-y-1">
@@ -334,6 +341,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               <p className="text-xs opacity-75 mt-1">{t("tax.sale.withConversionCredit")}</p>
             )}
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+            <p className="text-xs opacity-60 mt-1">{t("tax.saleTaxLabel.russia")}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
@@ -382,7 +390,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               {t("tax.sale.noIpnUntil2066Desc")}
             </AlertDescription>
           </Alert>
-          
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.saleTaxLabel.kazakhstan")}</span></p>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
               <p className="text-sm text-muted-foreground mb-1">{t("common.registrationCost")}</p>
@@ -409,7 +419,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             {t("tax.sale.analysisDesc")}
           </AlertDescription>
         </Alert>
-        
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.saleTaxLabel.other")}</span></p>
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-muted/30 border">
             <p className="text-sm text-muted-foreground mb-1">{t("common.registrationCost")}</p>
@@ -468,12 +480,19 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     const rateLabel = `${Math.round(taxRate * 100)}%`;
     const breakdown = `${formatCurrency(totalDividendsRub)} × ${rateLabel} = ${formatCurrency(tax)}`;
 
+    const taxTypeLabel = residency === "russia" ? t("tax.divTaxLabel.russia") : residency === "kazakhstan" ? t("tax.divTaxLabel.kazakhstan10") : t("tax.divTaxLabel.other");
+    const taxName = residency === "russia" ? t("tax.divTaxName.russia") : residency === "kazakhstan" ? t("tax.divTaxName.kazakhstan") : t("tax.divTaxName.other");
+
     return (
       <div className="space-y-4">
         <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-          <p className="text-sm opacity-90 mb-1">{t("tax.dividends.ndflOnDividends")} ({rateLabel})</p>
+          <p className="text-sm opacity-90 mb-1">{taxName} ({rateLabel})</p>
           <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
           <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+        </div>
+
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
@@ -490,7 +509,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            {t("tax.dividends.ndflWithheldByCompany")}
+            {t("tax.dividends.taxWithheldByCompanyGeneric")}
           </AlertDescription>
         </Alert>
       </div>
@@ -536,7 +555,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-sm text-muted-foreground mb-1">{t("tax.dividends.netDividendsPerPayout")}</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(netDividendsPerPayout)}</p>
-            <p className="text-xs text-muted-foreground mt-2">{t("tax.dividends.afterTax")}</p>
+            <p className="text-xs text-muted-foreground mt-2">{t("tax.dividends.afterTax")} ({residency === "russia" ? t("tax.divTaxLabel.russia") : residency === "kazakhstan" ? t("tax.divTaxLabel.kazakhstan10") : t("tax.divTaxLabel.other")})</p>
           </div>
         </div>
         

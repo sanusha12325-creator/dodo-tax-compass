@@ -103,7 +103,8 @@ export default function DividendsFlow() {
     setPlanToConvert(null);
   };
 
-  const taxLabel = residency === "russia" ? (lang === "ru" ? "НДФЛ" : "Income tax") : residency === "kazakhstan" ? (lang === "ru" ? "ИПН" : "IIT") : (lang === "ru" ? "Налог" : "Tax");
+  const taxLabel = residency === "russia" ? (lang === "ru" ? "НДФЛ" : "Income tax") : residency === "kazakhstan" ? (lang === "ru" ? "ИПН" : "IIT") : (lang === "ru" ? "Удерживаемый налог" : "Withholding tax");
+  const taxTypeLabel = residency === "russia" ? t("tax.divTaxLabel.russia") : residency === "kazakhstan" ? (hasCertificate ? t("tax.divTaxLabel.kazakhstan10") : t("tax.divTaxLabel.kazakhstan15")) : t("tax.divTaxLabel.other");
 
   const renderOwnershipScreen = () => (
     <div className="space-y-4">
@@ -197,6 +198,9 @@ export default function DividendsFlow() {
             <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
             <p className="text-4xl font-bold">{formatCurrency(net)}</p>
           </div>
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
+          </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="p-4 rounded-lg border bg-muted/20">
               <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
@@ -215,13 +219,15 @@ export default function DividendsFlow() {
           <p className="text-xs text-muted-foreground">{breakdown}</p>
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertDescription>{t("div.kazTaxWithheldByCompany")}</AlertDescription>
+            <AlertDescription>{t("tax.dividends.taxWithheldByCompanyGeneric")}</AlertDescription>
           </Alert>
         </div>
       );
     }
 
     if (residency === "other") {
+      const otherTax = totalRub * 0.15;
+      const otherNet = totalRub - otherTax;
       return (
         <div className="space-y-4">
           {renderResidencySelector()}
@@ -233,10 +239,28 @@ export default function DividendsFlow() {
               {t("tax.dividends.otherCountryDesc")}
             </AlertDescription>
           </Alert>
-          <div className="p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">{t("common.dividendAmount")}</p>
-            <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
           </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-4 rounded-lg border bg-muted/20">
+              <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
+              <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-destructive/5">
+              <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
+              <p className="text-lg font-bold">{formatCurrency(otherTax)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{taxLabel} (15%)</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-success/10">
+              <p className="text-sm text-muted-foreground mb-1">{t("div.total")}</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(otherNet)}</p>
+            </div>
+          </div>
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>{t("tax.dividends.taxWithheldByCompanyGeneric")}</AlertDescription>
+          </Alert>
         </div>
       );
     }
@@ -249,6 +273,9 @@ export default function DividendsFlow() {
         <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
           <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
           <p className="text-4xl font-bold">{formatCurrency(net)}</p>
+        </div>
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div className="p-4 rounded-lg border bg-muted/20">
@@ -270,7 +297,7 @@ export default function DividendsFlow() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            {t("div.ndflWithheldByCompany")}
+            {t("tax.dividends.taxWithheldByCompanyGeneric")}
           </AlertDescription>
         </Alert>
 
@@ -385,6 +412,10 @@ export default function DividendsFlow() {
 
           return (
             <div className="space-y-4 pt-4 border-t">
+              <div className="p-3 rounded-lg bg-muted/50 border">
+                <p className="text-xs text-muted-foreground">{lang === "ru" ? "Налог на дивиденды" : "Dividend tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
+                <p className="text-xs text-muted-foreground mt-0.5">{lang === "ru" ? "Налог на конвертацию" : "Conversion tax"}: <span className="font-semibold text-foreground">{residency === "russia" ? t("tax.convTaxLabel.russia") : residency === "kazakhstan" ? t("tax.convTaxLabel.kazakhstan") : t("tax.convTaxLabel.other")}</span></p>
+              </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-sm font-semibold mb-2">{t("div.whatYouPayNow")}</p>
                 <div className="space-y-1 text-sm">
@@ -488,6 +519,11 @@ export default function DividendsFlow() {
       <div className="space-y-6">
         {renderResidencySelector()}
         <h3 className="text-lg font-semibold">{t("div.comparativeCalc")}</h3>
+
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Налог на дивиденды" : "Dividend tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
+          <p className="text-xs text-muted-foreground mt-0.5">{lang === "ru" ? "Налог на конвертацию" : "Conversion tax"}: <span className="font-semibold text-foreground">{residency === "russia" ? t("tax.convTaxLabel.russia") : residency === "kazakhstan" ? t("tax.convTaxLabel.kazakhstan") : t("tax.convTaxLabel.other")}</span></p>
+        </div>
 
         {residency === "kazakhstan" && (
           <Alert className="border-primary/30 bg-primary/5">

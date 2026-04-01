@@ -163,6 +163,7 @@ export default function ConvertOptions() {
               <p className="text-sm opacity-90 mb-1">{t("tax.conversion.ndflToPay")} ({rate})</p>
               <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
               <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+              <p className="text-xs opacity-60 mt-1">{t("tax.convTaxLabel.russia")}</p>
             </div>
 
             <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
@@ -209,6 +210,9 @@ export default function ConvertOptions() {
                 {t("tax.conversion.noIpnDesc")}
               </AlertDescription>
             </Alert>
+            <div className="p-3 rounded-lg bg-muted/50 border">
+              <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.convTaxLabel.kazakhstan")}</span></p>
+            </div>
 
             <div className="p-4 rounded-lg border-2 border-muted bg-muted/20">
               <p className="text-sm text-muted-foreground mb-1">{t("convert.executionAndRegistration")}</p>
@@ -243,6 +247,9 @@ export default function ConvertOptions() {
               {t("tax.conversion.analysisDesc")}
             </AlertDescription>
           </Alert>
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.convTaxLabel.other")}</span></p>
+          </div>
 
           <div className="p-4 rounded-lg border-2 border-muted bg-muted/20">
             <p className="text-sm text-muted-foreground mb-1">{t("convert.executionAndRegistration")}</p>
