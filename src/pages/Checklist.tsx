@@ -25,8 +25,8 @@ export default function Checklist() {
   const convertSteps = [
     { id: "cv-1", label: t("checklist.cv.calculated"), subtitle: t("checklist.cv.calculatedDesc"), hasLink: true, link: "https://dodo-tax-compass.lovable.app/dividends", isNavigator: true, deadline: "20 апреля" },
     { id: "cv-2", label: t("checklist.cv.fillPyrus"), hasLink: true, link: "https://pyrus.com/form/1437842" },
-    { id: "cv-3", label: t("checklist.cv.signedDocs") },
-    { id: "cv-4", label: t("checklist.cv.paidNominal") },
+    { id: "cv-3", label: t("checklist.cv.signedDocs"), subtitle: t("checklist.cv.signedDocsDesc") },
+    { id: "cv-4", label: t("checklist.cv.paidNominal"), subtitle: t("checklist.cv.paidNominalDesc") },
     { id: "cv-5", label: t("checklist.cv.fillDividendForm"), hasLink: true, link: "https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/", hasPdf: true, deadline: "22 апреля" },
   ];
 
