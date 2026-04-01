@@ -412,6 +412,10 @@ export default function DividendsFlow() {
 
           return (
             <div className="space-y-4 pt-4 border-t">
+              <div className="p-3 rounded-lg bg-muted/50 border">
+                <p className="text-xs text-muted-foreground">{lang === "ru" ? "Налог на дивиденды" : "Dividend tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
+                <p className="text-xs text-muted-foreground mt-0.5">{lang === "ru" ? "Налог на конвертацию" : "Conversion tax"}: <span className="font-semibold text-foreground">{residency === "russia" ? t("tax.convTaxLabel.russia") : residency === "kazakhstan" ? t("tax.convTaxLabel.kazakhstan") : t("tax.convTaxLabel.other")}</span></p>
+              </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <p className="text-sm font-semibold mb-2">{t("div.whatYouPayNow")}</p>
                 <div className="space-y-1 text-sm">
