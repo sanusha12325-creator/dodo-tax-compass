@@ -326,7 +326,7 @@ const translations: Record<string, Record<Language, string>> = {
   "checklist.cv.calculatedDesc": { ru: "Рассчитать приблизительную стоимость расходов и доходов можно в навигаторе", en: "You can estimate costs and income in the navigator" },
   "checklist.cv.fillPyrus": { ru: "Заполнить форму на конвертацию опционов", en: "Fill out the option conversion form" },
   "checklist.cv.signedDocs": { ru: "Подписать все документы", en: "Sign all documents" },
-  "checklist.cv.signedDocsDesc": { ru: "Документы на подпись придут на указанную почту через DocuSign, туда же с вами свяжется команда юристов", en: "Documents for signing will be sent to your email via DocuSign, the legal team will also contact you there" },
+  "checklist.cv.signedDocsDesc": { ru: "Документы на подпись придут на указанную вами почту через DocuSign. Юристы свяжутся с вами по этой же почте.", en: "Documents for signing will be sent to the email you provided via DocuSign. Lawyers will contact you at the same email." },
   "checklist.cv.paidNominal": { ru: "Оплатить номинальную стоимость акций и регистрацию", en: "Pay the par value of shares and registration" },
   "checklist.cv.paidNominalDesc": { ru: "Номинальная стоимость — $0,01 × количество опционов, $100 — регистрация", en: "Par value — $0.01 × number of options, $100 — registration" },
   "checklist.cv.fillDividendForm": { ru: "Заполнить форму на получение дивидендов", en: "Fill out the dividend form" },
