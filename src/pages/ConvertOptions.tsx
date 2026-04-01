@@ -163,6 +163,7 @@ export default function ConvertOptions() {
               <p className="text-sm opacity-90 mb-1">{t("tax.conversion.ndflToPay")} ({rate})</p>
               <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
               <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+              <p className="text-xs opacity-60 mt-1">{t("tax.convTaxLabel.russia")}</p>
             </div>
 
             <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">

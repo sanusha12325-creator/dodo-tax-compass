@@ -103,7 +103,8 @@ export default function DividendsFlow() {
     setPlanToConvert(null);
   };
 
-  const taxLabel = residency === "russia" ? (lang === "ru" ? "НДФЛ" : "Income tax") : residency === "kazakhstan" ? (lang === "ru" ? "ИПН" : "IIT") : (lang === "ru" ? "Налог" : "Tax");
+  const taxLabel = residency === "russia" ? (lang === "ru" ? "НДФЛ" : "Income tax") : residency === "kazakhstan" ? (lang === "ru" ? "ИПН" : "IIT") : (lang === "ru" ? "Удерживаемый налог" : "Withholding tax");
+  const taxTypeLabel = residency === "russia" ? t("tax.divTaxLabel.russia") : residency === "kazakhstan" ? (hasCertificate ? t("tax.divTaxLabel.kazakhstan10") : t("tax.divTaxLabel.kazakhstan15")) : t("tax.divTaxLabel.other");
 
   const renderOwnershipScreen = () => (
     <div className="space-y-4">
