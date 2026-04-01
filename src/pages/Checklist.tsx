@@ -23,12 +23,11 @@ export default function Checklist() {
   ];
 
   const convertSteps = [
-    { id: "cv-1", label: t("checklist.cv.calculated") },
+    { id: "cv-1", label: t("checklist.cv.calculated"), hasLink: true, link: "https://dodo-tax-compass.lovable.app/dividends" },
     { id: "cv-2", label: t("checklist.cv.fillPyrus"), hasLink: true, link: "https://pyrus.com/form/1437842" },
     { id: "cv-3", label: t("checklist.cv.signedDocs") },
     { id: "cv-4", label: t("checklist.cv.paidNominal") },
-    { id: "cv-5", label: t("checklist.cv.gotExtract") },
-    { id: "cv-6", label: t("checklist.cv.fillDividendForm"), hasLink: true, link: "https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/", hasPdf: true },
+    { id: "cv-5", label: t("checklist.cv.fillDividendForm"), hasLink: true, link: "https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/", hasPdf: true },
   ];
 
   const renderScenarioSelect = () => (
