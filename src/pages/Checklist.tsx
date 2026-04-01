@@ -73,10 +73,7 @@ export default function Checklist() {
                 </a>
               )}
               {step.hasPdf && (
-                <a href="/Example_RUS.pdf" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-muted text-foreground text-xs font-medium hover:bg-muted/80 transition-colors">
-                  <FileText className="w-3 h-3" /> {t("checklist.examplePdf")}
-                </a>
+                <FormExample />
               )}
             </div>
           </div>
