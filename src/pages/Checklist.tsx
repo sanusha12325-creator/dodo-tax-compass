@@ -23,7 +23,7 @@ export default function Checklist() {
   ];
 
   const convertSteps = [
-    { id: "cv-1", label: t("checklist.cv.calculated"), hasLink: true, link: "https://dodo-tax-compass.lovable.app/dividends" },
+    { id: "cv-1", label: t("checklist.cv.calculated"), hasLink: true, link: "https://dodo-tax-compass.lovable.app/dividends", isNavigator: true },
     { id: "cv-2", label: t("checklist.cv.fillPyrus"), hasLink: true, link: "https://pyrus.com/form/1437842" },
     { id: "cv-3", label: t("checklist.cv.signedDocs") },
     { id: "cv-4", label: t("checklist.cv.paidNominal") },
@@ -49,7 +49,7 @@ export default function Checklist() {
     </div>
   );
 
-  const renderSteps = (steps: Array<{ id: string; label: string; hasLink?: boolean; link?: string; hasPdf?: boolean }>) => (
+  const renderSteps = (steps: Array<{ id: string; label: string; hasLink?: boolean; link?: string; hasPdf?: boolean; isNavigator?: boolean }>) => (
     <div className="space-y-3">
       {steps.map((step, i) => (
         <div key={step.id} className="flex items-start gap-3 p-4 rounded-lg border bg-card">
@@ -68,7 +68,7 @@ export default function Checklist() {
               {step.hasLink && (
                 <a href={step.link} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
-                  {t("checklist.openForm")} <ExternalLink className="w-3 h-3" />
+                  {t(step.isNavigator ? "checklist.openNavigator" : "checklist.openForm")} <ExternalLink className="w-3 h-3" />
                 </a>
               )}
               {step.hasPdf && (
@@ -90,7 +90,6 @@ export default function Checklist() {
           </Button>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t("checklist.title")}</h1>
-            <p className="text-sm text-muted-foreground">{t("checklist.subtitle")}</p>
           </div>
           <LanguageSwitcher />
         </div>
