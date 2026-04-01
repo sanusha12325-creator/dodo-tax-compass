@@ -210,6 +210,9 @@ export default function ConvertOptions() {
                 {t("tax.conversion.noIpnDesc")}
               </AlertDescription>
             </Alert>
+            <div className="p-3 rounded-lg bg-muted/50 border">
+              <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.convTaxLabel.kazakhstan")}</span></p>
+            </div>
 
             <div className="p-4 rounded-lg border-2 border-muted bg-muted/20">
               <p className="text-sm text-muted-foreground mb-1">{t("convert.executionAndRegistration")}</p>
