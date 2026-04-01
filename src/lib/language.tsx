@@ -333,6 +333,7 @@ const translations: Record<string, Record<Language, string>> = {
   "checklist.openForm": { ru: "Открыть форму", en: "Open form" },
   "checklist.openNavigator": { ru: "Открыть навигатор", en: "Open navigator" },
   "checklist.examplePdf": { ru: "Пример заполнения формы", en: "Form filling example" },
+  "checklist.allDone": { ru: "Всё готово!", en: "All done!" },
 
   // === FORM EXAMPLE ===
   "example.fullName": { ru: "Ваши фамилия, имя и отчество", en: "Full name" },
