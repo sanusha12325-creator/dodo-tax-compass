@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import FormExample from "@/components/FormExample";
 
 type Scenario = null | "shareholder" | "convert";
 
@@ -72,10 +73,7 @@ export default function Checklist() {
                 </a>
               )}
               {step.hasPdf && (
-                <a href="/Example_RUS.pdf" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-muted text-foreground text-xs font-medium hover:bg-muted/80 transition-colors">
-                  <FileText className="w-3 h-3" /> {t("checklist.examplePdf")}
-                </a>
+                <FormExample />
               )}
             </div>
           </div>
