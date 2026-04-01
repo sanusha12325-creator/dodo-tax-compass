@@ -468,12 +468,19 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     const rateLabel = `${Math.round(taxRate * 100)}%`;
     const breakdown = `${formatCurrency(totalDividendsRub)} × ${rateLabel} = ${formatCurrency(tax)}`;
 
+    const taxTypeLabel = residency === "russia" ? t("tax.divTaxLabel.russia") : residency === "kazakhstan" ? t("tax.divTaxLabel.kazakhstan10") : t("tax.divTaxLabel.other");
+    const taxName = residency === "russia" ? t("tax.divTaxName.russia") : residency === "kazakhstan" ? t("tax.divTaxName.kazakhstan") : t("tax.divTaxName.other");
+
     return (
       <div className="space-y-4">
         <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-          <p className="text-sm opacity-90 mb-1">{t("tax.dividends.ndflOnDividends")} ({rateLabel})</p>
+          <p className="text-sm opacity-90 mb-1">{taxName} ({rateLabel})</p>
           <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
           <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+        </div>
+
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
@@ -490,7 +497,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            {t("tax.dividends.ndflWithheldByCompany")}
+            {t("tax.dividends.taxWithheldByCompanyGeneric")}
           </AlertDescription>
         </Alert>
       </div>
