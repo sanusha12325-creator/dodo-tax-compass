@@ -335,6 +335,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               <p className="text-xs opacity-75 mt-1">{t("tax.sale.withConversionCredit")}</p>
             )}
             <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+            <p className="text-xs opacity-60 mt-1">{t("tax.saleTaxLabel.russia")}</p>
           </div>
           
           <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
