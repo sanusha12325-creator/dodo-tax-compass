@@ -313,6 +313,25 @@ const translations: Record<string, Record<Language, string>> = {
   "convert.step7": { ru: "Счёт на оплату номинальной стоимости акций: $0,01/акция. После выставления нужно оплатить.", en: "Invoice for par value of shares: $0.01/share. Must be paid after invoicing." },
   "convert.step8": { ru: "Юристы направляют акционерное соглашение (3–5 дней с момента оплаты).", en: "Lawyers send the shareholder agreement (3–5 days after payment)." },
   "convert.step9": { ru: "Регистратор оформляет акции и вносит изменения в корпоративный реестр.", en: "Registrar issues shares and updates the corporate registry." },
+
+  // === CHECKLIST ===
+  "checklist.title": { ru: "Чек-лист", en: "Checklist" },
+  "checklist.subtitle": { ru: "Выберите ваш сценарий", en: "Choose your scenario" },
+  "checklist.scenario.shareholder": { ru: "Я акционер и не планирую переводить опционы", en: "I'm a shareholder and not converting options" },
+  "checklist.scenario.shareholderDesc": { ru: "Заполните форму для получения дивидендов", en: "Fill out the form to receive dividends" },
+  "checklist.scenario.convert": { ru: "Перевод опционов в акции и получение дивидендов", en: "Convert options to shares and receive dividends" },
+  "checklist.scenario.convertDesc": { ru: "Полный путь от опционов к дивидендам", en: "Full path from options to dividends" },
+  "checklist.sh.fillForm": { ru: "Заполнить форму на получение дивидендов", en: "Fill out the dividend form" },
+  "checklist.cv.calculated": { ru: "Я рассчитал приблизительную стоимость своих расходов и доходов", en: "I've estimated my costs and income" },
+  "checklist.cv.fillPyrus": { ru: "Заполни форму на конвертацию опционов", en: "Fill out the option conversion form" },
+  "checklist.cv.signedDocs": { ru: "Подписал все документы, которые мне были отправлены на почту", en: "Signed all documents sent to my email" },
+  "checklist.cv.paidNominal": { ru: "Оплатил номинальную стоимость акций", en: "Paid the par value of shares" },
+  "checklist.cv.gotExtract": { ru: "Получил выписку из реестра, что я теперь акционер", en: "Received registry extract confirming shareholder status" },
+  "checklist.cv.fillDividendForm": { ru: "Заполнить форму на получение дивидендов", en: "Fill out the dividend form" },
+  "checklist.openForm": { ru: "Открыть форму", en: "Open form" },
+  "checklist.examplePdf": { ru: "Пример заполнения", en: "Example" },
+  "index.checklist.title": { ru: "Чек-лист", en: "Checklist" },
+  "index.checklist.desc": { ru: "Пошаговый чек-лист для акционеров и конвертации опционов", en: "Step-by-step checklist for shareholders and option conversion" },
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
