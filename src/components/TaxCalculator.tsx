@@ -384,7 +384,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
               {t("tax.sale.noIpnUntil2066Desc")}
             </AlertDescription>
           </Alert>
-          
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.saleTaxLabel.kazakhstan")}</span></p>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/30 border">
               <p className="text-sm text-muted-foreground mb-1">{t("common.registrationCost")}</p>
