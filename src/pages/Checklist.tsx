@@ -49,7 +49,7 @@ export default function Checklist() {
     </div>
   );
 
-  const renderSteps = (steps: Array<{ id: string; label: string; hasLink?: boolean; link?: string; hasPdf?: boolean }>) => (
+  const renderSteps = (steps: Array<{ id: string; label: string; hasLink?: boolean; link?: string; hasPdf?: boolean; isNavigator?: boolean }>) => (
     <div className="space-y-3">
       {steps.map((step, i) => (
         <div key={step.id} className="flex items-start gap-3 p-4 rounded-lg border bg-card">
