@@ -315,7 +315,7 @@ const translations: Record<string, Record<Language, string>> = {
   "convert.step9": { ru: "Регистратор оформляет акции и вносит изменения в корпоративный реестр.", en: "Registrar issues shares and updates the corporate registry." },
 
   // === CHECKLIST ===
-  "checklist.title": { ru: "Чек-лист", en: "Checklist" },
+  "checklist.title": { ru: "Чек-лист для перевода опционов в акции и/или получения дивидендов", en: "Checklist for converting options to shares and/or receiving dividends" },
   "checklist.subtitle": { ru: "", en: "" },
   "checklist.scenario.shareholder": { ru: "Я акционер и хочу получить дивиденды", en: "I'm a shareholder and want to receive dividends" },
   "checklist.scenario.shareholderDesc": { ru: "Заполните форму для получения дивидендов", en: "Fill out the form to receive dividends" },
