@@ -520,6 +520,11 @@ export default function DividendsFlow() {
         {renderResidencySelector()}
         <h3 className="text-lg font-semibold">{t("div.comparativeCalc")}</h3>
 
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Налог на дивиденды" : "Dividend tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
+          <p className="text-xs text-muted-foreground mt-0.5">{lang === "ru" ? "Налог на конвертацию" : "Conversion tax"}: <span className="font-semibold text-foreground">{residency === "russia" ? t("tax.convTaxLabel.russia") : residency === "kazakhstan" ? t("tax.convTaxLabel.kazakhstan") : t("tax.convTaxLabel.other")}</span></p>
+        </div>
+
         {residency === "kazakhstan" && (
           <Alert className="border-primary/30 bg-primary/5">
             <Info className="h-4 w-4 text-primary" />
