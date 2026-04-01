@@ -328,6 +328,7 @@ const translations: Record<string, Record<Language, string>> = {
   "checklist.cv.paidNominal": { ru: "Оплатить номинальную стоимость акций и регистрацию", en: "Pay the par value of shares and registration" },
   "checklist.cv.fillDividendForm": { ru: "Заполнить форму на получение дивидендов", en: "Fill out the dividend form" },
   "checklist.openForm": { ru: "Открыть форму", en: "Open form" },
+  "checklist.openNavigator": { ru: "Открыть навигатор", en: "Open navigator" },
   "checklist.examplePdf": { ru: "Пример заполнения формы", en: "Form filling example" },
 
   // === FORM EXAMPLE ===
