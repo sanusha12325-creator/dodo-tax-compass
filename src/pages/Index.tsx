@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Coins, ArrowRightLeft, Calculator, ChevronRight } from "lucide-react";
+import { Coins, ArrowRightLeft, Calculator, ClipboardCheck, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -25,6 +25,12 @@ const Index = () => {
       description: t("index.tax.desc"),
       icon: Calculator,
       path: "/tax",
+    },
+    {
+      title: t("index.checklist.title"),
+      description: t("index.checklist.desc"),
+      icon: ClipboardCheck,
+      path: "/checklist",
     },
   ];
 

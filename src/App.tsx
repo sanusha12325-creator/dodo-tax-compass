@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import DividendsFlow from "./pages/DividendsFlow";
 import ConvertOptions from "./pages/ConvertOptions";
 import TaxCalculatorPage from "./pages/TaxCalculator";
+import Checklist from "./pages/Checklist";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/dividends" element={<DividendsFlow />} />
             <Route path="/convert" element={<ConvertOptions />} />
             <Route path="/tax" element={<TaxCalculatorPage />} />
+            <Route path="/checklist" element={<Checklist />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
