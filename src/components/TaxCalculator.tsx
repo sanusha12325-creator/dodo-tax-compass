@@ -543,7 +543,7 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
           <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-sm text-muted-foreground mb-1">{t("tax.dividends.netDividendsPerPayout")}</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(netDividendsPerPayout)}</p>
-            <p className="text-xs text-muted-foreground mt-2">{t("tax.dividends.afterTax")}</p>
+            <p className="text-xs text-muted-foreground mt-2">{t("tax.dividends.afterTax")} ({residency === "russia" ? t("tax.divTaxLabel.russia") : residency === "kazakhstan" ? t("tax.divTaxLabel.kazakhstan10") : t("tax.divTaxLabel.other")})</p>
           </div>
         </div>
         
