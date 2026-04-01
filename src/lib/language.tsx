@@ -317,7 +317,7 @@ const translations: Record<string, Record<Language, string>> = {
   // === CHECKLIST ===
   "checklist.title": { ru: "Чек-лист", en: "Checklist" },
   "checklist.subtitle": { ru: "", en: "" },
-  "checklist.scenario.shareholder": { ru: "Я акционер и не планирую переводить опционы", en: "I'm a shareholder and not converting options" },
+  "checklist.scenario.shareholder": { ru: "Я акционер и хочу получить дивиденды", en: "I'm a shareholder and want to receive dividends" },
   "checklist.scenario.shareholderDesc": { ru: "Заполните форму для получения дивидендов", en: "Fill out the form to receive dividends" },
   "checklist.scenario.convert": { ru: "Перевод опционов в акции и получение дивидендов", en: "Convert options to shares and receive dividends" },
   "checklist.scenario.convertDesc": { ru: "Полный путь от опционов к дивидендам", en: "Full path from options to dividends" },
