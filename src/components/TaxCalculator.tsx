@@ -503,10 +503,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     
     if (totalDividendsRub <= 0 || dividendInputs.fairValueUsd <= 0) return null;
     
-    let netDividendsPerPayout = totalDividendsRub;
-    if (residency === "russia") {
-      netDividendsPerPayout = totalDividendsRub - calculateNdfl(totalDividendsRub).tax;
-    }
+    const divTaxRate = residency === "russia" ? 0.13 : residency === "kazakhstan" ? 0.10 : 0.15;
+    const netDividendsPerPayout = totalDividendsRub * (1 - divTaxRate);
     
     const isProfitable = netDividendsPerPayout > totalConversionCost;
     const paybackPayouts = netDividendsPerPayout > 0 ? Math.ceil(totalConversionCost / netDividendsPerPayout) : Infinity;
