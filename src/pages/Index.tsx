@@ -26,6 +26,12 @@ const Index = () => {
       icon: Calculator,
       path: "/tax",
     },
+    {
+      title: t("index.checklist.title"),
+      description: t("index.checklist.desc"),
+      icon: ClipboardCheck,
+      path: "/checklist",
+    },
   ];
 
   return (
