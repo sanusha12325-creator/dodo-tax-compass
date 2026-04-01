@@ -90,7 +90,6 @@ export default function Checklist() {
           </Button>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">{t("checklist.title")}</h1>
-            <p className="text-sm text-muted-foreground">{t("checklist.subtitle")}</p>
           </div>
           <LanguageSwitcher />
         </div>
