@@ -456,70 +456,43 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     
     if (totalDividendsRub <= 0) return null;
 
-    if (residency === "russia") {
-      const { tax, rate, breakdown } = calculateNdfl(totalDividendsRub);
-      const netDividends = totalDividendsRub - tax;
-      
-      return (
-        <div className="space-y-4">
-          <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
-            <p className="text-sm opacity-90 mb-1">{t("tax.dividends.ndflOnDividends")} ({rate})</p>
-            <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
-            <p className="text-xs opacity-75 mt-2">{breakdown}</p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
-              <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
-              <p className="text-xl font-bold text-foreground">{formatCurrency(totalDividendsRub)}</p>
-            </div>
-            <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-              <p className="text-sm text-muted-foreground mb-1">{t("common.netDividends")}</p>
-              <p className="text-xl font-bold text-success">{formatCurrency(netDividends)}</p>
-            </div>
-          </div>
-          
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              {t("tax.dividends.ndflWithheldByCompany")}
-            </AlertDescription>
-          </Alert>
-        </div>
-      );
-    }
-    
-    if (residency === "kazakhstan") {
-      return (
-        <div className="space-y-4">
-          <Alert className="border-success/30 bg-success/5">
-            <CheckCircle2 className="h-5 w-5 text-success" />
-            <AlertTitle className="text-success font-semibold">{t("tax.dividends.noIpn")}</AlertTitle>
-            <AlertDescription className="text-muted-foreground mt-2">
-              {t("tax.dividends.noIpnDesc")}
-            </AlertDescription>
-          </Alert>
-          <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-            <p className="text-sm text-muted-foreground mb-1">{t("common.netDividends")}</p>
-            <p className="text-xl font-bold text-success">{formatCurrency(totalDividendsRub)}</p>
-          </div>
-        </div>
-      );
-    }
-    
+    const getDividendTaxRate = (): number => {
+      if (residency === "russia") return 0.13;
+      if (residency === "kazakhstan") return 0.10;
+      return 0.15;
+    };
+
+    const taxRate = getDividendTaxRate();
+    const tax = totalDividendsRub * taxRate;
+    const netDividends = totalDividendsRub - tax;
+    const rateLabel = `${Math.round(taxRate * 100)}%`;
+    const breakdown = `${formatCurrency(totalDividendsRub)} × ${rateLabel} = ${formatCurrency(tax)}`;
+
     return (
       <div className="space-y-4">
-        <Alert className="border-warning/30 bg-warning/5">
-          <AlertTriangle className="h-5 w-5 text-warning" />
-          <AlertTitle className="text-warning font-semibold">{t("tax.dividends.otherCountryInfo")}</AlertTitle>
-          <AlertDescription className="text-muted-foreground mt-2">
-            {t("tax.dividends.otherCountryDesc")}
+        <div className="p-6 rounded-xl gradient-primary text-primary-foreground shadow-lg">
+          <p className="text-sm opacity-90 mb-1">{t("tax.dividends.ndflOnDividends")} ({rateLabel})</p>
+          <p className="text-4xl font-bold">{formatCurrency(tax)}</p>
+          <p className="text-xs opacity-75 mt-2">{breakdown}</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
+            <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
+            <p className="text-xl font-bold text-foreground">{formatCurrency(totalDividendsRub)}</p>
+          </div>
+          <div className="p-4 rounded-lg bg-success/10 border border-success/20">
+            <p className="text-sm text-muted-foreground mb-1">{t("common.netDividends")}</p>
+            <p className="text-xl font-bold text-success">{formatCurrency(netDividends)}</p>
+          </div>
+        </div>
+        
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            {t("tax.dividends.ndflWithheldByCompany")}
           </AlertDescription>
         </Alert>
-        <div className="p-4 rounded-lg bg-muted/30 border">
-          <p className="text-sm text-muted-foreground mb-1">{t("common.dividendAmount")}</p>
-          <p className="text-xl font-bold">{formatCurrency(totalDividendsRub)}</p>
-        </div>
       </div>
     );
   };
@@ -530,10 +503,8 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
     
     if (totalDividendsRub <= 0 || dividendInputs.fairValueUsd <= 0) return null;
     
-    let netDividendsPerPayout = totalDividendsRub;
-    if (residency === "russia") {
-      netDividendsPerPayout = totalDividendsRub - calculateNdfl(totalDividendsRub).tax;
-    }
+    const divTaxRate = residency === "russia" ? 0.13 : residency === "kazakhstan" ? 0.10 : 0.15;
+    const netDividendsPerPayout = totalDividendsRub * (1 - divTaxRate);
     
     const isProfitable = netDividendsPerPayout > totalConversionCost;
     const paybackPayouts = netDividendsPerPayout > 0 ? Math.ceil(totalConversionCost / netDividendsPerPayout) : Infinity;
