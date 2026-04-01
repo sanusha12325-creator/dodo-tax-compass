@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import FormExample from "@/components/FormExample";
 
 type Scenario = null | "shareholder" | "convert";
 
