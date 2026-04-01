@@ -251,6 +251,9 @@ export default function DividendsFlow() {
           <p className="text-sm opacity-90 mb-1">{t("common.amountToReceive")}</p>
           <p className="text-4xl font-bold">{formatCurrency(net)}</p>
         </div>
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
+        </div>
         <div className="grid grid-cols-3 gap-3">
           <div className="p-4 rounded-lg border bg-muted/20">
             <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
@@ -271,7 +274,7 @@ export default function DividendsFlow() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            {t("div.ndflWithheldByCompany")}
+            {t("tax.dividends.taxWithheldByCompanyGeneric")}
           </AlertDescription>
         </Alert>
 
