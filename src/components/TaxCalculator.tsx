@@ -272,6 +272,9 @@ export default function TaxCalculator({ hideHeader = false }: { hideHeader?: boo
             {t("tax.conversion.analysisDesc")}
           </AlertDescription>
         </Alert>
+        <div className="p-3 rounded-lg bg-muted/50 border">
+          <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{t("tax.convTaxLabel.other")}</span></p>
+        </div>
         
         <div className="p-4 rounded-lg bg-muted/50 space-y-2">
           <div className="text-sm space-y-1">
