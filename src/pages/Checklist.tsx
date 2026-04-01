@@ -23,11 +23,11 @@ export default function Checklist() {
   ];
 
   const convertSteps = [
-    { id: "cv-1", label: t("checklist.cv.calculated"), hasLink: true, link: "https://dodo-tax-compass.lovable.app/dividends", isNavigator: true },
+    { id: "cv-1", label: t("checklist.cv.calculated"), subtitle: t("checklist.cv.calculatedDesc"), hasLink: true, link: "https://dodo-tax-compass.lovable.app/dividends", isNavigator: true, deadline: "20 апреля" },
     { id: "cv-2", label: t("checklist.cv.fillPyrus"), hasLink: true, link: "https://pyrus.com/form/1437842" },
     { id: "cv-3", label: t("checklist.cv.signedDocs") },
     { id: "cv-4", label: t("checklist.cv.paidNominal") },
-    { id: "cv-5", label: t("checklist.cv.fillDividendForm"), hasLink: true, link: "https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/", hasPdf: true },
+    { id: "cv-5", label: t("checklist.cv.fillDividendForm"), hasLink: true, link: "https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/", hasPdf: true, deadline: "22 апреля" },
   ];
 
   const renderScenarioSelect = () => (
@@ -49,25 +49,39 @@ export default function Checklist() {
     </div>
   );
 
-  const renderSteps = (steps: Array<{ id: string; label: string; hasLink?: boolean; link?: string; hasPdf?: boolean; isNavigator?: boolean }>) => (
+  const renderSteps = (steps: Array<{ id: string; label: string; subtitle?: string; hasLink?: boolean; link?: string; hasPdf?: boolean; isNavigator?: boolean; deadline?: string }>) => (
     <div className="space-y-3">
       {steps.map((step, i) => (
         <div key={step.id} className="flex items-start gap-3 p-4 rounded-lg border bg-card">
-          <Checkbox
-            id={step.id}
-            checked={!!checked[step.id]}
-            onCheckedChange={() => toggle(step.id)}
-            className="mt-0.5"
-          />
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-muted text-muted-foreground text-sm font-medium shrink-0 mt-0.5">
+            {i + 1}
+          </div>
           <div className="flex-1 space-y-2">
-            <label htmlFor={step.id} className={`text-sm cursor-pointer ${checked[step.id] ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-              <span className="font-medium mr-1">{i + 1}.</span>
-              {step.label}
-            </label>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className={`text-sm font-semibold ${checked[step.id] ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                  {step.label}
+                </p>
+                {step.subtitle && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{step.subtitle}</p>
+                )}
+              </div>
+              <Checkbox
+                id={step.id}
+                checked={!!checked[step.id]}
+                onCheckedChange={() => toggle(step.id)}
+                className="mt-0.5"
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
+              {step.deadline && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-destructive/10 text-destructive text-xs font-medium">
+                  до {step.deadline}
+                </span>
+              )}
               {step.hasLink && (
                 <a href={step.link} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors">
                   {t(step.isNavigator ? "checklist.openNavigator" : "checklist.openForm")} <ExternalLink className="w-3 h-3" />
                 </a>
               )}
