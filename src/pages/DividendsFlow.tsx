@@ -226,6 +226,8 @@ export default function DividendsFlow() {
     }
 
     if (residency === "other") {
+      const otherTax = totalRub * 0.15;
+      const otherNet = totalRub - otherTax;
       return (
         <div className="space-y-4">
           {renderResidencySelector()}
@@ -237,10 +239,28 @@ export default function DividendsFlow() {
               {t("tax.dividends.otherCountryDesc")}
             </AlertDescription>
           </Alert>
-          <div className="p-4 rounded-lg border bg-muted/20">
-            <p className="text-sm text-muted-foreground mb-1">{t("common.dividendAmount")}</p>
-            <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+          <div className="p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs text-muted-foreground">{lang === "ru" ? "Применяемый налог" : "Applied tax"}: <span className="font-semibold text-foreground">{taxTypeLabel}</span></p>
           </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-4 rounded-lg border bg-muted/20">
+              <p className="text-sm text-muted-foreground mb-1">{t("common.dividendsBeforeTax")}</p>
+              <p className="text-lg font-bold">{formatCurrency(totalRub)}</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-destructive/5">
+              <p className="text-sm text-muted-foreground mb-1">{t("common.expenses")}</p>
+              <p className="text-lg font-bold">{formatCurrency(otherTax)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{taxLabel} (15%)</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-success/10">
+              <p className="text-sm text-muted-foreground mb-1">{t("div.total")}</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(otherNet)}</p>
+            </div>
+          </div>
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>{t("tax.dividends.taxWithheldByCompanyGeneric")}</AlertDescription>
+          </Alert>
         </div>
       );
     }
