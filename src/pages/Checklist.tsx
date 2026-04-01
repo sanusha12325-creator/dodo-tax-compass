@@ -117,8 +117,11 @@ export default function Checklist() {
                 <div className="p-4 rounded-lg border bg-card space-y-2">
                   <p className="text-sm text-foreground">{t("checklist.sh.fillForm")}</p>
                   <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-destructive/10 text-destructive text-xs font-medium">
+                      до 22 апреля
+                    </span>
                     <a href="https://forms.yandex.ru/u/68a71d20d0468831b1ddca4a/" target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors">
                       {t("checklist.openForm")} <ExternalLink className="w-3 h-3" />
                     </a>
                     <FormExample />
